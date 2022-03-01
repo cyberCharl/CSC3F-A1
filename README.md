@@ -1,8 +1,9 @@
 # CSC3F-A1
 Assignment 1 - create chat app with custom protocol
 
-    Kwaai soos 'n ratel
-    Die chello is mellow
+    Kwaai soos 'n ratel.
+    Die chello is mellow.
+    As jy dom is moet jy kak.
     
 
 ## Mission Satement
