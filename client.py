@@ -171,7 +171,7 @@ def enterKey(event):
     else:
         startOptions()
 
-def debugTerminal(event):
+def chatTerminal(event):
 
     # defining stage
 
@@ -218,6 +218,10 @@ def debugTerminal(event):
         terminalLine8.config(text = message)
         terminalEntry.delete(0,'end')
 
+        # message sending
+        
+
+
     def terminalEnterKey(event):
         terminalPush(terminalEntry.get())
 
@@ -230,7 +234,7 @@ def debugTerminal(event):
 window.bind('<Up>', upKey)
 window.bind('<Down>', downKey)
 window.bind('<Return>', enterKey)
-window.bind('<BackSpace>', debugTerminal)
+window.bind('<BackSpace>', chatTerminal)
 
 frame.pack(fill = tk.X)
 updateLabels()
