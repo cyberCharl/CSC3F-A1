@@ -1,14 +1,14 @@
 from socket import *
 
-localIP = "192.168.0.180"
-localPort = 12000
+localIP = "196.42.83.200" # insert own network IP
+localPort = 24000
 bufferSize = 2048
 
 serverSocket = socket(AF_INET,SOCK_DGRAM)
 
 serverSocket.bind((localIP, localPort))
 
-print ('The server is ready to receive')
+print ('Server is Up')
 
 while True:
     message, clientAddress = serverSocket.recvfrom(2048)
