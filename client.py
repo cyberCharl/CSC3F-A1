@@ -159,7 +159,7 @@ def enterKey(event):
     else:
         startOptions()
 
-def chatTerminal(event):
+def debugTerminal(event):
 
     # defining stage
 
@@ -207,7 +207,6 @@ def chatTerminal(event):
         terminalEntry.delete(0,'end')
         
 
-<<<<<<< HEAD
     def sendMessage(message):
         
     #while(message!='\quit'):
@@ -215,23 +214,11 @@ def chatTerminal(event):
 
         # quit function
         if(message == '\quit'):
-            sendMsg = '<' + clientName + '> ' + "{" + "Disconnected}" 
+            sendMsg = '<' + clientName + '> ' + 'Disconnected'
             clientSocket.sendto(sendMsg.encode(),serverInfo)
             terminalEntry.delete(0,'end')
         msgHash = zlib.adler32(message.encode())
         sendMsg = '['+ str(msgHash) + ']' + '<' + clientName + '> ' + '{' + message + '}'
-=======
-<<<<<<< HEAD
-        # message sending
-        
-=======
-
-        message = input('>')
-        clientSocket.sendto(message.encode(),serverInfo)
-        modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
-        print (modifiedMessage.decode())
->>>>>>> 08514efbd53ed4c222a6400a27fade2435f718e2
->>>>>>> e9736d02aa4584ebf83fffbae07f317d7a9eaf21
 
         clientSocket.sendto(sendMsg.encode(),serverInfo)
     
@@ -254,7 +241,7 @@ def chatTerminal(event):
 window.bind('<Up>', upKey)
 window.bind('<Down>', downKey)
 window.bind('<Return>', enterKey)
-window.bind('<BackSpace>', chatTerminal)
+window.bind('<BackSpace>', debugTerminal)
 
 frame.pack(fill = tk.X)
 updateLabels()
