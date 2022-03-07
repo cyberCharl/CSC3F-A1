@@ -1,7 +1,7 @@
 from socket import *
 
-localIP = "196.42.83.200" # insert own network IP
-localPort = 24000
+localIP = "192.168.0.180" # insert own network IP
+localPort = 12000
 bufferSize = 2048
 
 serverSocket = socket(AF_INET,SOCK_DGRAM)

@@ -3,7 +3,7 @@ import tkinter as tk
 from unicodedata import name
 
 # Network stuff
-serverInfo = ("196.42.83.200", 24000) # insert own network IP
+serverInfo = ("192.168.0.180", 12000) # insert own network IP
 clientSocket = socket(AF_INET, SOCK_DGRAM)
 
 # create window
@@ -202,16 +202,16 @@ def debugTerminal(event):
         terminalLine7.config(text = terminalLine8.cget('text'))
         terminalLine8.config(text = message)
         terminalEntry.delete(0,'end')
+        
+        # print (modifiedMessage.decode())
 
-
-        message = input('>')
+    def sendMessage(message):
         clientSocket.sendto(message.encode(),serverInfo)
-        modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
-        print (modifiedMessage.decode())
-
+        terminalPush(message)
 
     def terminalEnterKey(event):
-        terminalPush(terminalEntry.get())
+        sendMessage(terminalEntry.get())
+        
 
     terminalWindow.bind('<Return>', terminalEnterKey)
 
@@ -228,4 +228,6 @@ frame.pack(fill = tk.X)
 updateLabels()
 window.mainloop()    # start the GUI
 
+
+modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
 clientSocket.close()
