@@ -2,6 +2,24 @@ from socket import*
 import tkinter as tk
 from unicodedata import name
 
+#from random import randint
+
+# Network stuff
+
+serverInfo = ("192.168.0.180", 12000)
+
+serverName = 'hostname'
+# serverPort = randint(10000, 50000)
+clientSocket = socket(AF_INET, SOCK_DGRAM)
+
+message = input('Input sentence:')
+clientSocket.sendto(message.encode(),serverInfo)
+modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
+print (modifiedMessage.decode())
+
+clientSocket.close()
+
+
 
 # create window
 
@@ -218,12 +236,3 @@ frame.pack(fill = tk.X)
 updateLabels()
 window.mainloop()    # start the GUI
 
-# serverName = 'hostname'
-# serverPort = 12000
-# clientSocket = socket(AF_INET, SOCK_DGRAM)
-
-# message = input('Input sentence:')
-# clientSocket.sendto(message.encode(),(serverName, serverPort))
-# modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
-# print (modifiedMessage.decode())
-# clientSocket.close()
