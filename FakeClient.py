@@ -28,3 +28,24 @@ while(message!='\quit'):
         continue
         
 clientSocket.close()
+
+# def sendMessage(message):
+        
+#     #while(message!='\quit'):
+#         #message = input('msg > ')
+
+#         # quit function
+#         if(message == '\quit'):
+#             sendMsg = '<' + clientName + '> ' + 'Disconnected'
+#             clientSocket.sendto(sendMsg.encode(),serverInfo)
+#             terminalEntry.delete(0,'end')
+#         msgHash = zlib.adler32(message.encode())
+#         sendMsg = '['+ str(msgHash) + ']' + '<' + clientName + '> ' + '{' + message + '}'
+
+#         clientSocket.sendto(sendMsg.encode(),serverInfo)
+    
+#         msgStatus, serverAddress = clientSocket.recvfrom(2048)
+#         if(msgStatus.decode() == "msgLost"):    
+#             clientSocket.sendto(sendMsg.encode(),serverInfo)
+            
+#         terminalPush(message)
