@@ -2,24 +2,9 @@ from socket import*
 import tkinter as tk
 from unicodedata import name
 
-#from random import randint
-
 # Network stuff
-
-serverInfo = ("192.168.0.180", 12000)
-
-serverName = 'hostname'
-# serverPort = randint(10000, 50000)
+serverInfo = ("196.42.83.200", 24000) # insert own network IP
 clientSocket = socket(AF_INET, SOCK_DGRAM)
-
-message = input('Input sentence:')
-clientSocket.sendto(message.encode(),serverInfo)
-modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
-print (modifiedMessage.decode())
-
-clientSocket.close()
-
-
 
 # create window
 
@@ -218,6 +203,13 @@ def debugTerminal(event):
         terminalLine8.config(text = message)
         terminalEntry.delete(0,'end')
 
+
+        message = input('>')
+        clientSocket.sendto(message.encode(),serverInfo)
+        modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
+        print (modifiedMessage.decode())
+
+
     def terminalEnterKey(event):
         terminalPush(terminalEntry.get())
 
@@ -236,3 +228,4 @@ frame.pack(fill = tk.X)
 updateLabels()
 window.mainloop()    # start the GUI
 
+clientSocket.close()
