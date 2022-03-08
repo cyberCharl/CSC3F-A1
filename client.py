@@ -1,16 +1,4 @@
 from socket import*
-
-#<<<<<<< HEAD
-#serverName = 'hostname'
-#serverPort = 12000
-#clientSocket = socket(AF_INET, SOCK_DGRAM)
-
-#message = input('Input sentence:')
-#clientSocket.sendto(message.encode(),(serverName, serverPort))
-#modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
-##print (modifiedMessage.decode())
-#clientSocket.close()
-#=======
 import tkinter as tk
 from unicodedata import name
 import zlib
@@ -260,14 +248,5 @@ updateLabels()
 window.mainloop()    # start the GUI
 
 
-#<<<<<<< HEAD
-# message = input('Input sentence:')
-# clientSocket.sendto(message.encode(),(serverName, serverPort))
-# modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
-# print (modifiedMessage.decode())
-# clientSocket.close()
-#>>>>>>> 5bb041b6a34df4293ad9fc0c6e01ca302dcb4983
-#=======
-#modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
-#clientSocket.close()
-#>>>>>>> 4bab2291e5d56936e01c72104b76dd5a181b802e
+modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
+clientSocket.close()
