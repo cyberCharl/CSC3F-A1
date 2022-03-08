@@ -1,18 +1,25 @@
 from socket import*
-<<<<<<< HEAD
-serverName = 'hostname'
-serverPort = 12000
-clientSocket = socket(AF_INET, SOCK_DGRAM)
 
-message = input('Input sentence:')
-clientSocket.sendto(message.encode(),(serverName, serverPort))
-modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
-print (modifiedMessage.decode())
-clientSocket.close()
-=======
+#<<<<<<< HEAD
+#serverName = 'hostname'
+#serverPort = 12000
+#clientSocket = socket(AF_INET, SOCK_DGRAM)
+
+#message = input('Input sentence:')
+#clientSocket.sendto(message.encode(),(serverName, serverPort))
+#modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
+##print (modifiedMessage.decode())
+#clientSocket.close()
+#=======
 import tkinter as tk
 from unicodedata import name
+import zlib
 
+# Network stuff
+serverInfo = ("192.168.0.180", 12000) # insert own network IP
+clientSocket = socket(AF_INET, SOCK_DGRAM)
+clientName = 'Tokkolosh' 
+# clientName = input('Enter identifier:')
 
 # create window
 
@@ -210,9 +217,32 @@ def debugTerminal(event):
         terminalLine7.config(text = terminalLine8.cget('text'))
         terminalLine8.config(text = message)
         terminalEntry.delete(0,'end')
+        
+
+    def sendMessage(message):
+        
+    #while(message!='\quit'):
+        #message = input('msg > ')
+
+        # quit function
+        if(message == '\quit'):
+            sendMsg = '<' + clientName + '> ' + 'Disconnected'
+            clientSocket.sendto(sendMsg.encode(),serverInfo)
+            terminalEntry.delete(0,'end')
+        msgHash = zlib.adler32(message.encode())
+        sendMsg = '['+ str(msgHash) + ']' + '<' + clientName + '> ' + '{' + message + '}'
+
+        clientSocket.sendto(sendMsg.encode(),serverInfo)
+    
+        msgStatus, serverAddress = clientSocket.recvfrom(2048)
+        if(msgStatus.decode() == "msgLost"):    
+            clientSocket.sendto(sendMsg.encode(),serverInfo)
+            
+        terminalPush(message)
 
     def terminalEnterKey(event):
-        terminalPush(terminalEntry.get())
+        sendMessage(terminalEntry.get())
+        
 
     terminalWindow.bind('<Return>', terminalEnterKey)
 
@@ -229,13 +259,15 @@ frame.pack(fill = tk.X)
 updateLabels()
 window.mainloop()    # start the GUI
 
-# serverName = 'hostname'
-# serverPort = 12000
-# clientSocket = socket(AF_INET, SOCK_DGRAM)
 
+#<<<<<<< HEAD
 # message = input('Input sentence:')
 # clientSocket.sendto(message.encode(),(serverName, serverPort))
 # modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
 # print (modifiedMessage.decode())
 # clientSocket.close()
->>>>>>> 5bb041b6a34df4293ad9fc0c6e01ca302dcb4983
+#>>>>>>> 5bb041b6a34df4293ad9fc0c6e01ca302dcb4983
+#=======
+#modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
+#clientSocket.close()
+#>>>>>>> 4bab2291e5d56936e01c72104b76dd5a181b802e
