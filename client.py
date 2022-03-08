@@ -2,6 +2,11 @@ from socket import*
 import tkinter as tk
 from unicodedata import name
 import zlib
+from random import *
+
+
+encryptKey = [randint(1,9), randint(1,9), randint(1,9), randint(1,9), randint(1,9)]
+scrollCounter = 0
 
 # Network stuff
 serverInfo = ("192.168.0.180", 12000) # insert own network IP
@@ -159,7 +164,10 @@ def enterKey(event):
     else:
         startOptions()
 
-def debugTerminal(event):
+def chatTerminal(event):
+    messageList = ['', '', '', '', '', '', '']
+    global scrollCounter
+    scrollCounter = 0
 
     # defining stage
 
@@ -194,18 +202,50 @@ def debugTerminal(event):
     terminalEntry.pack(side = tk.LEFT)
 
     # event handlers
+    
+    def terminalScrollUp():
+        global scrollCounter
+
+        if len(messageList) > scrollCounter*8 + 15:
+            scrollCounter = scrollCounter + 1
+        
+        k = 8*scrollCounter
+        terminalLine1.config(text = messageList[k + 7])
+        terminalLine2.config(text = messageList[k + 6])
+        terminalLine3.config(text = messageList[k + 5])
+        terminalLine4.config(text = messageList[k + 4])
+        terminalLine5.config(text = messageList[k + 3])
+        terminalLine6.config(text = messageList[k + 2])
+        terminalLine7.config(text = messageList[k + 1])
+        terminalLine8.config(text = messageList[k])
+
+    def terminalScrollDown():
+        global scrollCounter
+
+        if scrollCounter != 0:
+            scrollCounter = scrollCounter - 1
+        
+        k = 8*scrollCounter
+        terminalLine1.config(text = messageList[k + 7])
+        terminalLine2.config(text = messageList[k + 6])
+        terminalLine3.config(text = messageList[k + 5])
+        terminalLine4.config(text = messageList[k + 4])
+        terminalLine5.config(text = messageList[k + 3])
+        terminalLine6.config(text = messageList[k + 2])
+        terminalLine7.config(text = messageList[k + 1])
+        terminalLine8.config(text = messageList[k])
 
     def terminalPush(message):
-        terminalLine1.config(text = terminalLine2.cget('text'))
-        terminalLine2.config(text = terminalLine3.cget('text'))
-        terminalLine3.config(text = terminalLine4.cget('text'))
-        terminalLine4.config(text = terminalLine5.cget('text'))
-        terminalLine5.config(text = terminalLine6.cget('text'))
-        terminalLine6.config(text = terminalLine7.cget('text'))
-        terminalLine7.config(text = terminalLine8.cget('text'))
-        terminalLine8.config(text = message)
+        messageList.insert(0, message)
+        terminalLine1.config(text = messageList[7])
+        terminalLine2.config(text = messageList[6])
+        terminalLine3.config(text = messageList[5])
+        terminalLine4.config(text = messageList[4])
+        terminalLine5.config(text = messageList[3])
+        terminalLine6.config(text = messageList[2])
+        terminalLine7.config(text = messageList[1])
+        terminalLine8.config(text = messageList[0])
         terminalEntry.delete(0,'end')
-        
 
     def sendMessage(message):
         
@@ -213,40 +253,83 @@ def debugTerminal(event):
         #message = input('msg > ')
 
         # quit function
-        if(message == '\quit'):
-            sendMsg = '<' + clientName + '> ' + 'Disconnected'
-            clientSocket.sendto(sendMsg.encode(),serverInfo)
-            terminalEntry.delete(0,'end')
-        msgHash = zlib.adler32(message.encode())
-        sendMsg = '['+ str(msgHash) + ']' + '<' + clientName + '> ' + '{' + message + '}'
+        # if(message == '\quit'):
+        #     sendMsg = '<' + clientName + '> ' + 'Disconnected'
+        #     clientSocket.sendto(sendMsg.encode(),serverInfo)
+        #     terminalEntry.delete(0,'end')
+        # msgHash = zlib.adler32(message.encode())
+        # sendMsg = '['+ str(msgHash) + ']' + '<' + clientName + '> ' + '{' + message + '}'
 
-        clientSocket.sendto(sendMsg.encode(),serverInfo)
+        # clientSocket.sendto(sendMsg.encode(),serverInfo)
     
-        msgStatus, serverAddress = clientSocket.recvfrom(2048)
-        if(msgStatus.decode() == "msgLost"):    
-            clientSocket.sendto(sendMsg.encode(),serverInfo)
+        # msgStatus, serverAddress = clientSocket.recvfrom(2048)
+        # if(msgStatus.decode() == "msgLost"):    
+        #     clientSocket.sendto(sendMsg.encode(),serverInfo)
             
         terminalPush(message)
 
     def terminalEnterKey(event):
         sendMessage(terminalEntry.get())
-        
+    
+    def terminalUpKey(event):
+        terminalScrollUp()
 
+    def terminalDownKey(event):
+        terminalScrollDown()
+        
+    terminalWindow.bind('<Up>', terminalUpKey)
+    terminalWindow.bind('<Down>', terminalDownKey)
     terminalWindow.bind('<Return>', terminalEnterKey)
 
     # start gui
 
     terminalWindow.mainloop()
 
+def encryptMessage(message, key):
+    keycount = 0
+    output = ''
+
+    for i in message:
+        icode = ord(i) + key[keycount]
+        
+        if icode > 126:
+            icode = (icode - 126) + 31
+        
+        keycount = keycount + 1
+        if keycount == 4:
+            keycount = 0
+
+        output = output + chr(icode)
+    
+    return output
+
+def decryptMessage(message, key):
+    keycount = 0
+    output = ''
+
+    for i in message:
+        icode = ord(i) - key[keycount]
+        
+        if icode < 32:
+            icode = (icode + 126) - 31
+        
+        keycount = keycount + 1
+        if keycount == 4:
+            keycount = 0
+
+        output = output + chr(icode)
+    
+    return output
+
 window.bind('<Up>', upKey)
 window.bind('<Down>', downKey)
 window.bind('<Return>', enterKey)
-window.bind('<BackSpace>', debugTerminal)
+window.bind('<BackSpace>', chatTerminal)
 
 frame.pack(fill = tk.X)
 updateLabels()
 window.mainloop()    # start the GUI
 
 
-modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
-clientSocket.close()
+# modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
+# clientSocket.close()
