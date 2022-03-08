@@ -18,5 +18,14 @@ Client-Server chat app. Intention of this assignment is to create a privacy focu
 - ```/obliterate``` command will forcefully delete all messages in the group (only admins can use)
 
 ## Protocol Design
-- Message confirmation
+- Message confirmation (slides - needs work)
     Hash message before sending, attach key with message, hash message upon recieve, if keys match, send server confirm and display message. else request message resend. 
+- Protocol structure:
+    - Header end: ```\n```
+    - clientName field: ```<ID>clientName</ID>```
+    - messageTypes: ```<T>type</T>```
+        - Touch/Connect (touch)
+        - Quit/Disconnect (leave)
+        - Commands: (command) -- implement permission?
+            - ```/Obliterate```
+    - hashKey: ```<hK>key</hK>```
