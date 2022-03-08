@@ -1,8 +1,11 @@
 # CSC3F-A1
+Report: https://www.overleaf.com/2466211633drjnpjscrvyd
+
 Assignment 1 - create chat app with custom protocol
 
-    Kwaai soos 'n ratel
-    Die chello is mellow
+    Kwaai soos 'n ratel.
+    Die chello is mellow.
+    Piele op wiele.
     
 
 ## Mission Satement
