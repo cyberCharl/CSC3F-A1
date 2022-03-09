@@ -3,17 +3,20 @@ import zlib
 
 homeIP = "192.168.0.180" # insert own network IP
 uctIP = "196.42.86.45"
+uctIP1 = "196.42.81.129"
 localPort = 24000
 bufferSize = 2048
 
 serverSocket = socket(AF_INET,SOCK_DGRAM)
-serverSocket.bind((homeIP, localPort))
+serverSocket.bind((uctIP1, localPort))
 
 def checkHash(message, recievedHash):
     return (zlib.adler32(message.encode()) == int(recievedHash))
 
+# parsing protocol header add counter
 def msgProtocol(packet):
-    
+    packet = packet.decode()
+
     # get <T>type</T>
     msgType = packet[packet.find("<T>")+3:packet.find("</T>")]
     
@@ -23,29 +26,47 @@ def msgProtocol(packet):
     # get [hashKey] from packet
     hashKey = packet[packet.find("<hK>")+4:packet.find('</hK>')]
     
-    return [msgType, clientName, hashKey]
+    # message confirmation via hash
+    if checkHash(packet[:packet.find("<hK>")], hashKey):
+        # send message AK
+        serverSocket.sendto("msgRcvd".encode(), currentClientAdd)
+    else: 
+        serverSocket.sendto("msgLost".encode(), currentClientAdd) 
+        # wait for response - thread?
+    
+    # get sent message and decrypt (would need clientID)
+    msgContent = decryptMessage(packet)
+
+    return [msgType, clientName, msgContent]
+
+# to take package and remove message and decrypt it
+def decryptMessage(msgCont):
+    return msgCont[msgCont.find("<msg>")+5:msgCont.find("</msg>")]
+
+# broadcast message sent to all other "connected" clients - use clientArray
+def broadcast(clients):    
+    print("hi")
+    # do stuff on seperate threads 
 
 # server active confirmation
-print ('Server is Up')
+print ('Server is Up on: ' + homeIP)
 
-# listening for messages + parsing protocol messages
+# start thread listen for touch and make global array of clients
+
+# listening for messages on seperate thread 
 while True:
-    message, clientAddress = serverSocket.recvfrom(2048)
+    packetRecv, currentClientAdd = serverSocket.recvfrom(2048)
 
-    packetRecv = message.decode()
     msgRcv = msgProtocol(packetRecv)
+    
+    if msgRcv[0] == "touch":
+        print(msgRcv[1] + " connected")
     
     if msgRcv[0] == "quit":
         messageContent = msgRcv[1] + " disconnected --- removing messages sent"
-        print(messageContent) # send to other clients on server - seperate thread
+        print(messageContent) # send to other clients on server - 
         break # remove client that quit from clientArray
     
-    # get {message} from packet recieved
-    messageContent = packetRecv[packetRecv.find('{')+1:packetRecv.find('}')]
-
-    # message confirmation via hash and print
-    if checkHash(messageContent, msgRcv[2]):
-        serverSocket.sendto("msgRcvd".encode(), clientAddress)
-        print(msgRcv[1] + '>> ' + messageContent) # send to other clients - thread
-    else: 
-        serverSocket.sendto("msgLost".encode(), clientAddress) # wait for response - thread?
+    if msgRcv[0] == "msg":
+        messageContent = msgRcv[2]
+        print(msgRcv[1] + '>> ' + messageContent)
