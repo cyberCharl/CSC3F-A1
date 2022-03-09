@@ -1,3 +1,4 @@
+from pickle import FALSE
 from socket import*
 import tkinter as tk
 from unicodedata import name
@@ -9,7 +10,20 @@ encryptKey = [randint(10,94), randint(10,94), randint(10,94), randint(10,94), ra
 tScrollCounter = 0
 sScrollCounter = 0
 
+# reading from text file for server list
+
+serverFile = open('servers.txt','r')
+serverList = ['', '', '', '']
+for line in serverFile:
+    serverInfo = line.split(';')
+    serverText = serverInfo[0] + ' -  -  - ' + serverInfo[1]
+    serverList.reverse()
+    serverList.insert(4, serverText)
+    serverList.reverse()
+serverFile.close()
+
 # Network stuff
+
 serverInfo = ("192.168.0.180", 12000) # insert own network IP
 clientSocket = socket(AF_INET, SOCK_DGRAM)
 clientName = 'Tokkolosh' 
@@ -36,11 +50,11 @@ start.pack(fill = tk.X, pady = (40,0))
 servers.pack(fill = tk.X, pady = (15,0))
 help.pack(fill = tk.X, pady = (15,0))     
 
-# event handlers
+# chat start screen
 
 def startStartChat():
 
-    # defining stage
+    # defining stage for gui
 
     startChatWindow = tk.Tk()
     startChatWindow.configure(bg = 'black')
@@ -49,46 +63,57 @@ def startStartChat():
     startChatCodeEnter = tk.Label(master = startChatFrame, text = 'enter ip address or server id:', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
     startChatEntry = tk.Entry(master = startChatFrame, fg = 'green', bg = 'black', width = 40, font = ('OCR A EXTENDED', 14))
 
-    # packing stage
+    # packing stage for gui
 
     startChatFrame.pack()
     startChatTitle.pack()
     startChatCodeEnter.pack(pady = (25,0))
     startChatEntry.pack(pady = (25,0))
 
+    # event handlers
+
+    def startChatEnterKey(event):
+        global serverList
+
+        for serv in serverList:
+            servInfo = serv.split(' -  -  - ')
+            serverName = servInfo[0]
+            if serverName == startChatEntry.get():
+                serverIP = servInfo[1]
+                break
+        else:
+            serverIP = startChatEntry.get()
+        
+        startChatCodeEnter.config(text = serverIP)
+
+    startChatWindow.bind('<Return>', startChatEnterKey)
+
     # start gui
 
     startChatWindow.mainloop()
 
+#server screen
+
 def startServer():
-
-    # reading from text file
-
-    serverFile = open('servers.txt','r')
-    serverList = ['', '', '', '']
-    for line in serverFile:
-        serverInfo = line.split(';')
-        serverText = serverInfo[0] + ' -  -  - ' + serverInfo[1]
-        serverList.reverse()
-        serverList.insert(4, serverText)
-        serverList.reverse()
-    serverFile.close()
     
-    # defining stage
+    # defining stage for gui
 
     serverWindow = tk.Tk()
     serverWindow.configure(bg = 'black')
     serverFrame = tk.Frame(master = serverWindow, bg = 'black')
     serverTitle = tk.Label(master = serverFrame, text = 'server list', fg = 'green', bg = 'black', width = 30, anchor = 'n', font = ('OCR A EXTENDED', 20))
-    server1 = tk.Label(master = serverFrame, text = '', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
-    server2 = tk.Label(master = serverFrame, text = '', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
-    server3 = tk.Label(master = serverFrame, text = '', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
-    server4 = tk.Label(master = serverFrame, text = '', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
-    server5 = tk.Label(master = serverFrame, text = '', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
+    server1 = tk.Label(master = serverFrame, text = ' ', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
+    server2 = tk.Label(master = serverFrame, text = ' ', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
+    server3 = tk.Label(master = serverFrame, text = ' ', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
+    server4 = tk.Label(master = serverFrame, text = ' ', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
+    server5 = tk.Label(master = serverFrame, text = ' ', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
+    serverAdd = tk.Label(master = serverFrame, text = 'add server', fg = 'green', bg = 'black', width = 40, anchor = 'n', font = ('OCR A EXTENDED', 16))
+    serverNameLabel = tk.Label(master = serverFrame, text = 'server name', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
     serverNameEntry = tk.Entry(master = serverFrame, fg = 'green', bg = 'black', width = 40, font = ('OCR A EXTENDED', 14))
+    serverIPLabel = tk.Label(master = serverFrame, text = 'server ip', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
     serverIPEntry = tk.Entry(master = serverFrame, fg = 'green', bg = 'black', width = 40, font = ('OCR A EXTENDED', 14))
 
-    # packing stage
+    # packing stage for gui
 
     serverFrame.pack()
     serverTitle.pack()
@@ -97,8 +122,11 @@ def startServer():
     server3.pack(pady = (15,0))
     server4.pack(pady = (15,0))
     server5.pack(pady = (15,0))
-    serverNameEntry.pack(pady = (15,0))
-    serverIPEntry.pack(pady = (15,0))
+    serverAdd.pack(pady = (20,0))
+    serverNameLabel.pack(pady = (15,0))
+    serverNameEntry.pack()
+    serverIPLabel.pack(pady = (15,0))
+    serverIPEntry.pack()
 
     # event handlers
 
@@ -134,15 +162,10 @@ def startServer():
         serverFile.write(fileLine)
         serverFile.close
 
-        serverFile = open('servers.txt','r')
-        serverList = ['', '', '', '']
-        for line in serverFile:
-            serverInfo = line.split(';')
-            serverText = serverInfo[0] + ' -  -  - ' + serverInfo[1]
-            serverList.reverse()
-            serverList.insert(4, serverText)
-            serverList.reverse()
-        serverFile.close()
+        serverText = serverName + ' -  -  - ' + serverIP
+        serverList.reverse()
+        serverList.insert(4, serverText)
+        serverList.reverse()
 
         serverScrollUp()
 
@@ -166,29 +189,39 @@ def startServer():
     serverScrollUp()
     serverWindow.mainloop()
 
+# help screen
+
 def startHelp():
 
-    # defining stage
+    # defining stage for gui
 
     helpWindow = tk.Tk()
     helpWindow.configure(bg = 'black')
     helpFrame = tk.Frame(master = helpWindow, bg = 'black')
-    helpTitle = tk.Label(master = helpFrame, text = 'help list', fg = 'green', bg = 'black', width = 30, anchor = 'n', font = ('OCR A EXTENDED', 20))
-    helpOne = tk.Label(master = helpFrame, text = 'help1', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
-    helpTwo = tk.Label(master = helpFrame, text = 'help2', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
-    helpThree = tk.Label(master = helpFrame, text = 'help3', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
-    helpFour = tk.Label(master = helpFrame, text = 'help4', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
-    helpFive = tk.Label(master = helpFrame, text = 'help5', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
+    helpTitle = tk.Label(master = helpFrame, text = 'help', fg = 'green', bg = 'black', width = 30, anchor = 'n', font = ('OCR A EXTENDED', 20))
+    help1 = tk.Label(master = helpFrame, text = 'use the up and down arrow keys to navigate and', fg = 'green', bg = 'black', width = 50, anchor = 'w', font = ('OCR A EXTENDED', 12))
+    help2 = tk.Label(master = helpFrame, text = 'enter to select. the \'start chat\' screen is used', fg = 'green', bg = 'black', width = 50, anchor = 'w', font = ('OCR A EXTENDED', 12))
+    help3 = tk.Label(master = helpFrame, text = 'to connect to a chat server. the \'servers\' screen', fg = 'green', bg = 'black', width = 50, anchor = 'w', font = ('OCR A EXTENDED', 12))
+    help4 = tk.Label(master = helpFrame, text = 'is where you can save important servers so that', fg = 'green', bg = 'black', width = 50, anchor = 'w', font = ('OCR A EXTENDED', 12))
+    help5 = tk.Label(master = helpFrame, text = 'you won\'t have to remember their ip. the chat', fg = 'green', bg = 'black', width = 50, anchor = 'w', font = ('OCR A EXTENDED', 12))
+    help6 = tk.Label(master = helpFrame, text = 'has several commands that you can use. below is', fg = 'green', bg = 'black', width = 50, anchor = 'w', font = ('OCR A EXTENDED', 12))
+    help7 = tk.Label(master = helpFrame, text = 'the full list of chat commands.', fg = 'green', bg = 'black', width = 50, anchor = 'w', font = ('OCR A EXTENDED', 12))
+    help8 = tk.Label(master = helpFrame, text = 'commands:', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
+    help9 = tk.Label(master = helpFrame, text = '\quit: logs you out of the chat server', fg = 'green', bg = 'black', width = 50, anchor = 'w', font = ('OCR A EXTENDED', 12))
 
-    # packing stage
+    # packing stage for gui
 
     helpFrame.pack()
     helpTitle.pack()
-    helpOne.pack(pady = (15,0))
-    helpTwo.pack(pady = (15,0))
-    helpThree.pack(pady = (15,0))
-    helpFour.pack(pady = (15,0))
-    helpFive.pack(pady = (15,0))
+    help1.pack(pady = (15,0))
+    help2.pack(pady = (15,0))
+    help3.pack(pady = (15,0))
+    help4.pack(pady = (15,0))
+    help5.pack(pady = (15,0))
+    help6.pack(pady = (15,0))
+    help7.pack(pady = (15,0))
+    help8.pack(pady = (20,0))
+    help9.pack(pady = (15,0))
 
     # start gui
 
@@ -215,40 +248,14 @@ def updateLabels():
         unselectLabel(servers)
         selectLabel(help)
 
-
-def upKey(event):
-    global selected
-    if selected != 0:
-        selected = selected - 1
-    else:
-        selected = 2
-    updateLabels()
-    title.config(text = encryptMessage(title.cget('text'), encryptKey))
-
-def downKey(event):
-    global selected          
-    if selected != 2:
-        selected = selected + 1
-    else:
-        selected = 0
-    updateLabels()
-    title.config(text = encryptMessage(title.cget('text'), encryptKey))
-
-def enterKey(event):
-    global selected
-    if selected == 0:
-        startStartChat()
-    elif selected == 1:
-        startServer()
-    else:
-        startHelp()
+# chat terminal
 
 def chatTerminal(event):
     messageList = ['', '', '', '', '', '', '']
     global tScrollCounter
     tScrollCounter = 0
 
-    # defining stage
+    # defining stage for gui
 
     terminalWindow = tk.Tk()
     terminalWindow.configure(bg = 'black')
@@ -265,7 +272,7 @@ def chatTerminal(event):
     terminalEntryLabel = tk.Label(master = terminalFrame, text = '>', fg = 'green', bg = 'black', width = 1, anchor = 'w', font = ('OCR A EXTENDED', 14))
     terminalEntry = tk.Entry(master = terminalFrame, text = '', fg = 'green', bg = 'black', width = 60, relief = 'raised', font = ('OCR A EXTENDED', 14))
 
-    # packing stage
+    # packing stage for gui
 
     terminalFrame.pack()
     terminalTitle.pack()
@@ -364,6 +371,8 @@ def chatTerminal(event):
 
     terminalWindow.mainloop()
 
+# encryption and decryption
+
 def encryptMessage(message, key):
     keycount = 0
     output = ''
@@ -399,6 +408,35 @@ def decryptMessage(message, key):
         output = output + chr(icode)
     
     return output
+
+# main screen event handlers
+
+def upKey(event):
+    global selected
+    if selected != 0:
+        selected = selected - 1
+    else:
+        selected = 2
+    updateLabels()
+    title.config(text = encryptMessage(title.cget('text'), encryptKey))
+
+def downKey(event):
+    global selected          
+    if selected != 2:
+        selected = selected + 1
+    else:
+        selected = 0
+    updateLabels()
+    title.config(text = encryptMessage(title.cget('text'), encryptKey))
+
+def enterKey(event):
+    global selected
+    if selected == 0:
+        startStartChat()
+    elif selected == 1:
+        startServer()
+    else:
+        startHelp()
 
 window.bind('<Up>', upKey)
 window.bind('<Down>', downKey)
