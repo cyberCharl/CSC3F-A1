@@ -1,20 +1,22 @@
 from socket import*
 import threading as thr
 import zlib
+import time
 
 # Network stuff
 homeIP = "192.168.0.180"
-uctIP = "196.42.86.45"
-serverInfo = (homeIP, 24000) # insert own network IP
+uctIP = "196.42.81.129"
+
+# connect to room >> enter IP
+# serverIP = input("enter server IP ")
+serverInfo = (uctIP, 24000) # insert own network IP
+
 clientSocket = socket(AF_INET, SOCK_DGRAM)
 count = 0
-
-# connect to room ?? >> enter IP
-# touch server 
-# messageArray? 
-
+key = "12345"
 clientID = 'DieKwaaiRatel'
 # clientName = input('Enter identifier:')
+
 
 # Send and confirm thread to take messages passed to it, send to server and wait for response. 
 class sendThread(thr.Thread):
@@ -26,45 +28,62 @@ class sendThread(thr.Thread):
         self.servInf = servInf
 
     def run(self):
-        print("start send/confirm")
-        sendMessage(self.name, self.package, self.servInf)
-        print("message delivered")
+        sendMessage(self.package, self.servInf)
 
-def sendMessage(threadName, packet, serverDetails):
+# send and check message
+def sendMessage(packet, serverDetails):
     clientSocket.sendto(packet.encode(), serverDetails)
     
-    msgACK, serverAddress = clientSocket.recvfrom(2048)    
-    if(msgACK.decode() == "msgLost"):
-        count += 1
-        if(count==10):
-            help()
-        sendMessage(threadName, packet, serverDetails)
-        # counter and could not deliver after 10 implement
+    # timeout functionality
+    tic = time.perf_counter()
+    
+    while(time.perf_counter() - tic <= 0.0000004):
+        print(time.perf_counter() - tic)
+        msgACK, serverAddress = clientSocket.recvfrom(2048)
         
+        if(msgACK.decode() == "msgLost"):
+            tic = time.perf_counter()
+            clientSocket.sendto(packet.encode(), serverDetails)
+        else:
+             break        
+
 # hash function
 def hash(message):
     return "<hK>" + str(zlib.adler32(message.encode())) + "</hK>"
+
 # command header (not normal message)
 def commandHeader(command, name):
     msgType = "<T>"+ command + "</T>"
     clientName = '<ID>' + name + '</ID>'
     return msgType + clientName
-# build the packet header
-def msgHeader(name, hashkey, msgNum): # client side order and reorder
+
+# build the message packet with header and message
+def msgPacket(name, messageContent): # client side order and reorder
     msgType = "<T>msg</T>"
     clientName = '<ID>' + name + '</ID>'
-    msgHash = hashkey
-    return msgType + clientName + msgHash
+    packet = msgType + clientName + "<msg>" + messageContent + "</msg>"
+    msgHash = hash(packet)
+    return packet + msgHash
+
 #quit function
 def quit():
     sendMsg = commandHeader("quit", clientID)
     hashKey = hash(sendMsg)
     sendMsg += hashKey
-    clientSocket.sendto(sendMsg.encode(),serverInfo)
+    sendMessage(sendMsg, serverInfo)
+    #  clientSocket.sendto(sendMsg.encode(),serverInfo)
     clientSocket.close()
 
-def touch():
-    awe
+def touch(name, encryptKey):
+    encKey = "<ek>" + encryptKey + "</ek>"
+    sendMsg = commandHeader("touch", name) + encKey
+    hashKey = hash(sendMsg)
+    sendMsg += hashKey
+    # clientSocket.sendto(sendMsg.encode(), serverDetails)
+    sendMessage(sendMsg, serverInfo)
+
+# touch server 
+touch(clientID, key)
 
 message = ''
 while(True):
@@ -75,11 +94,8 @@ while(True):
         if(message == '/quit'):
             quit()
             break # neccassary? 
-
-        
-    sendMsg = msgHeader(clientID, hash(message)) + '{' + message + '}'
     
-    thread1 = sendThread(1, "Thread-1", sendMsg, serverInfo)
+    thread1 = sendThread(1, "Thread-1", msgPacket(clientID, message), serverInfo)
     thread1.start()
 
     # client side integrity check after broadcast
