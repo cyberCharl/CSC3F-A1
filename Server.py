@@ -12,8 +12,8 @@ serverSocket.bind((homeIP, localPort))
 def checkHash(message, recievedHash):
     return (zlib.adler32(message.encode()) == int(recievedHash))
 
+# parsing protocol header add counter
 def msgProtocol(packet):
-    
     # get <T>type</T>
     msgType = packet[packet.find("<T>")+3:packet.find("</T>")]
     
@@ -25,27 +25,35 @@ def msgProtocol(packet):
     
     return [msgType, clientName, hashKey]
 
-# server active confirmation
-print ('Server is Up')
+def broadcast(clients):    
+    print("hi")
+    # do stuff on seperate threads 
 
-# listening for messages + parsing protocol messages
+# server active confirmation
+print('Server is Up')
+
+# start thread listen for touch and make global array of clients
+
+# listening for messages on seperate thread 
 while True:
-    message, clientAddress = serverSocket.recvfrom(2048)
+    message, currentClientAdd = serverSocket.recvfrom(2048)
 
     packetRecv = message.decode()
     msgRcv = msgProtocol(packetRecv)
     
     if msgRcv[0] == "quit":
         messageContent = msgRcv[1] + " disconnected --- removing messages sent"
-        print(messageContent) # send to other clients on server - seperate thread
-        break # remove client that quit from clientArray
+        print(messageContent) # send to other clients on server - 
+        break # remove client that quit from clientArray 
     
     # get {message} from packet recieved
     messageContent = packetRecv[packetRecv.find('{')+1:packetRecv.find('}')]
 
     # message confirmation via hash and print
     if checkHash(messageContent, msgRcv[2]):
-        serverSocket.sendto("msgRcvd".encode(), clientAddress)
-        print(msgRcv[1] + '>> ' + messageContent) # send to other clients - thread
+        serverSocket.sendto("msgRcvd".encode(), currentClientAdd)
+        print(msgRcv[1] + '>> ' + messageContent) # send to other clients - seperate thread (for loop ifneq, send)
     else: 
-        serverSocket.sendto("msgLost".encode(), clientAddress) # wait for response - thread?
+        serverSocket.sendto("msgLost".encode(), currentClientAdd) # wait for response - thread?
+
+
