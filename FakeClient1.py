@@ -9,13 +9,13 @@ uctIP = "196.42.81.129"
 
 # connect to room >> enter IP
 # serverIP = input("enter server IP ")
-serverInfo = (uctIP, 24000) # insert own network IP
+serverInfo = (homeIP, 24000) # insert own network IP
 
 clientSocket = socket(AF_INET, SOCK_DGRAM)
 count = 0
 key = "12345"
 clientID = 'DieKwaaiRatel'
-# clientName = input('Enter identifier:')
+#clientID = input('Enter identifier:')
 
 
 # Send and confirm thread to take messages passed to it, send to server and wait for response. 
@@ -37,7 +37,7 @@ def sendMessage(packet, serverDetails):
     # timeout functionality
     tic = time.perf_counter()
     
-    while(time.perf_counter() - tic <= 0.0000004):
+    while(time.perf_counter() - tic <= 0.5):
         print(time.perf_counter() - tic)
         msgACK, serverAddress = clientSocket.recvfrom(2048)
         

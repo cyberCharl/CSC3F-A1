@@ -6,9 +6,16 @@ uctIP = "196.42.86.45"
 uctIP1 = "196.42.81.129"
 localPort = 24000
 bufferSize = 2048
+clientArray = []
 
 serverSocket = socket(AF_INET,SOCK_DGRAM)
-serverSocket.bind((uctIP1, localPort))
+serverSocket.bind((homeIP, localPort))
+
+class client():
+    def __init__(identifier, ipAddress, portAddress, encryptionKey):
+        clientID = identifier
+        clientAddress = [ipAddress, portAddress]
+        clientKey = encryptionKey
 
 def checkHash(message, recievedHash):
     return (zlib.adler32(message.encode()) == int(recievedHash))
@@ -34,6 +41,10 @@ def msgProtocol(packet):
         serverSocket.sendto("msgLost".encode(), currentClientAdd) 
         # wait for response - thread?
     
+    if (msgType == "touch"):
+        encKey = packet[packet.find("<ek>") + 4: packet.find("</ek>")]
+        return [msgType, clientName, encKey]
+
     # get sent message and decrypt (would need clientID)
     msgContent = decryptMessage(packet)
 
@@ -60,7 +71,8 @@ while True:
     msgRcv = msgProtocol(packetRecv)
     
     if msgRcv[0] == "touch":
-        print(msgRcv[1] + " connected")
+        clientArray.append(client(msgRcv[1], currentClientAdd, msgRcv[2]))
+        print(msgRcv[1] + " connected") # broadcast to everyone else
     
     if msgRcv[0] == "quit":
         messageContent = msgRcv[1] + " disconnected --- removing messages sent"
