@@ -1,0 +1,4 @@
+Coolserver;192.111.2.111
+Coolerserver;192.222.1.222
+Ebbejeeby server;192.333.4.333
+asdasd;gsagsagas
