@@ -54,6 +54,10 @@ while True:
         serverSocket.sendto("msgRcvd".encode(), currentClientAdd)
         print(msgRcv[1] + '>> ' + messageContent) # send to other clients - seperate thread (for loop ifneq, send)
     else: 
+<<<<<<< HEAD
         serverSocket.sendto("msgLost".encode(), currentClientAdd) # wait for response - thread?
 
 
+=======
+        serverSocket.sendto("msgLost".encode(), clientAddress) # wait for response - thread?
+>>>>>>> ea8642b307a2c1bddb72ac4825bf86e35485cab5
