@@ -18,6 +18,7 @@ Client-Server chat app. Intention of this assignment is to create a privacy focu
     - clientName field: ```<ID>clientName</ID>```
     - messageTypes: ```<T>type</T>```
         - Touch/Connect (touch)
+        - MessageContent ```<cnt>Message</cnt>```
         - Quit/Disconnect (leave)
     - hashKey: ```<hK>key</hK>```
 
