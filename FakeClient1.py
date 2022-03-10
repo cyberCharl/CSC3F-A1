@@ -63,7 +63,7 @@ def sendMessage(packet, serverDetails):
     clientSocket.sendto(packet.encode(), serverDetails)
     
 
-# acknowledge function for integrityt checking
+# acknowledge function for integrityt checking (DONE)
 def msgACK(status, clientDisplayName):
     sendMsg = commandHeader("ack", clientDisplayName)
     sendMsg += "<st>" + status + "</st>"

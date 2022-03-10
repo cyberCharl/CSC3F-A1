@@ -14,6 +14,8 @@ sScrollCounter = 0
 
 clientIPAddress = gethostbyname(gethostname())
 
+prevMessage = ""
+
 # reading from text file for server list
 
 serverFile = open('servers.txt','r')
@@ -29,7 +31,7 @@ serverFile.close()
 # Network stuff
 
 clientSocket = socket(AF_INET, SOCK_DGRAM)
-# clientName = input('Enter identifier:')
+serverInfo = ('', 0)
 
 # create window
 
@@ -242,15 +244,55 @@ def startHelp():
 # chat terminal
 
 def chatTerminal(clientDisplayName, serverIP):
+    # thread used to listen for messages from the server
+
+    class recieveThread(thr.Thread):
+        def __init__(self, threadID, name):
+            thr.Thread.__init__(self)
+            self.threadID = threadID
+            self.name = name
+            
+        def run(self):
+            recieveMessage()
+
+    # while loop to listen for messages which runs on a thread
+
+    def recieveMessage():
+        global serverInfo
+        while True:
+            recievedMessage, serverAddress = clientSocket.recvfrom(2048)
+            msgRcv = msgProtocol(recievedMessage, serverAddress)
+            
+            if msgRcv[0] == "ack":
+                if msgRcv[2] == "msgLost":
+                    sendMessage(prevMessage, serverInfo)
+                else:
+                    continue
+            
+            if msgRcv[0] == "down":
+                print("server Down --- Shutting off")
+                clientSocket.close()
+        
+            if msgRcv[0] == "msg":
+                messageContent = msgRcv[2]
+                terminalPush(msgRcv[1], messageContent)
+
     messageList = ['', '', '', '', '', '', '']
     clientMessageSync = ['', '', '', '', '', '', '']
+    global prevMessage
     global tScrollCounter
     tScrollCounter = 0
 
     # touch server
     global encryptKey
+    global serverInfo
     serverInfo = (serverIP, 24000)
     touch(clientDisplayName, encryptKey, serverInfo)
+
+    # open for recieving broadcasts
+
+    rThread = recieveThread(2, "Reciever")
+    rThread.start()
 
     # defining stage for gui
 
@@ -341,6 +383,7 @@ def chatTerminal(clientDisplayName, serverIP):
         eMessage = encryptMessage(message, encryptKey)
         thread1 = sendThread(1, "Thread-1", msgPacket(clientDisplayName, eMessage), serverInfo)
         thread1.start()
+        prevMessage = msgPacket(clientDisplayName, message)
 
         terminalPush(clientDisplayName, message)
 
@@ -365,6 +408,10 @@ def chatTerminal(clientDisplayName, serverIP):
     terminalWindow.bind('<Up>', terminalUpKey)
     terminalWindow.bind('<Down>', terminalDownKey)
     terminalWindow.bind('<Return>', terminalEnterKey)
+
+    
+    
+    
 
     # start gui
 
@@ -406,7 +453,7 @@ def decryptMessage(message, key):
 
         output = output + chr(icode)
     
-    return "<cnt>" + output + "</cnt>"
+    return output
 
 # hash functions
 
@@ -476,20 +523,30 @@ def msgProtocol(packet, serverAddress):
     
     # message confirmation via hash
     if checkHash(packet[:packet.find("<hK>")], hashKey):
-        # send message AK
-        clientSocket.sendto("msgRcvd".encode(), serverAddress)
+        status = "msgRcvd"
+        clientSocket.sendto(msgACK(status, clientName).encode(), serverAddress)
     else: 
-        clientSocket.sendto("msgLost".encode(), serverAddress) 
-        # wait for response - thread?
+        status = "msgLost"
+        clientSocket.sendto(msgACK(status, clientName).encode(), serverAddress) 
+        
     
     if (msgType == "touch"):
         encKey = packet[packet.find("<ek>") + 4: packet.find("</ek>")]
         return [msgType, clientName, encKey]
 
+    msgProper =  packet[packet.find("<cnt>") + 5:packet.find("</cnt>")]
     # get sent message and decrypt (would need clientID)
-    msgContent = decryptMessage(packet)
+    msgContent = decryptMessage(msgProper, encryptKey)
 
     return [msgType, clientName, msgContent]
+
+# acknowledge function for integrity checking
+
+def msgACK(status, clientDisplayName):
+    sendMsg = commandHeader("ack", clientDisplayName)
+    sendMsg += "<st>" + status + "</st>"
+    haskey = hash(sendMsg)
+    return sendMsg + haskey
 
 # thread for sending messages
 

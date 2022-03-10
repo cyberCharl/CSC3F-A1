@@ -3,7 +3,7 @@ import zlib
 import threading as thr
 import time
 
-homeIP = "192.168.0.180" # insert own network IP
+homeIP = "192.168.1.118" # insert own network IP
 uctIP = "196.42.86.45"
 uctIP1 = "196.42.81.129"
 localPort = 24000
@@ -170,7 +170,7 @@ def msgProtocol(packet, clientAdd):
         if i.ipAddress == clientAdd[0] and i.portAddress == clientAdd[1]:
             key = i.encryptionKey
     
-    msg = packet[packet.find("<cnt>") + 10 :packet.find("</cnt>")]
+    msg = packet[packet.find("<cnt>") +  5:packet.find("</cnt>")]
     msgContent = decryptMessage(msg, key)
 
     return [msgType, clientName, msgContent]
@@ -182,7 +182,7 @@ def hash(message):
 def broadcast(packet, sendingClient):
 
     for i in clientArray:
-        if i == sendingClient:
+        if i != sendingClient:
             msgCrypt = str(encryptMessage(packet, i.encryptionKey))
             package = msgPacket(sendingClient.clientID, msgCrypt)
             clientAddress = (i.ipAddress, i.portAddress)
