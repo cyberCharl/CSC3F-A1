@@ -1,12 +1,8 @@
 # CSC3F-A1
 Report: https://www.overleaf.com/2466211633drjnpjscrvyd
 
-Assignment 1 - create chat app with custom protocol
+Assignment 1 - Create chat app with custom protocol
 
-    Kwaai soos 'n ratel.
-    Die chello is mellow.
-    Piele op wiele.
-    
 
 ## Mission Satement
 Client-Server chat app. Intention of this assignment is to create a privacy focussed chat app that allows people to communicate annonamously with each other. The messages are only visible while the sender of said messages is connected to the server. Once the person leaves, all the messages that they have sent will be removed and will not be recoverable.
@@ -26,6 +22,7 @@ Client-Server chat app. Intention of this assignment is to create a privacy focu
     - messageTypes: ```<T>type</T>```
         - Touch/Connect (touch)
         - Quit/Disconnect (leave)
-        - Commands: (command) -- implement permission?
-            - ```/Obliterate```
+
     - hashKey: ```<hK>key</hK>```
+
+## Running of the program
