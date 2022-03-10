@@ -74,8 +74,8 @@ def serverDown():
     broadcastAll(commandHeader("serverDown", "server"))
 
 def leave(sendClient):
-    messageContent = msgRcv[1] + " disconnected --- removing messages sent"
-    packet = commandHeader("leave", msgRcv[1]) + "<cnt>" + messageContent + "</cnt>"
+    messageContent = sendClient.clientID + " disconnected --- removing messages sent"
+    packet = commandHeader("leave", sendClient.clientID) + "<cnt>" + messageContent + "</cnt>"
     hashKey = hash(packet)
     sendMsg = packet + hashKey        
     broadcast(sendMsg, sendClient)
