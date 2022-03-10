@@ -61,14 +61,18 @@ def startStartChat():
     startChatFrame = tk.Frame(master = startChatWindow, bg = 'black')
     startChatTitle = tk.Label(master = startChatFrame, text = 'start chat', fg = 'green', bg = 'black', width = 30, anchor = 'n', font = ('OCR A EXTENDED', 20))
     startChatCodeEnter = tk.Label(master = startChatFrame, text = 'enter ip address or server id:', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
-    startChatEntry = tk.Entry(master = startChatFrame, fg = 'green', bg = 'black', width = 40, font = ('OCR A EXTENDED', 14))
+    startChatIPEntry = tk.Entry(master = startChatFrame, fg = 'green', bg = 'black', width = 40, font = ('OCR A EXTENDED', 14))
+    startChatNameEnter = tk.Label(master = startChatFrame, text = 'enter display name:', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
+    startChatNameEntry = tk.Entry(master = startChatFrame, fg = 'green', bg = 'black', width = 40, font = ('OCR A EXTENDED', 14))
 
     # packing stage for gui
 
     startChatFrame.pack()
     startChatTitle.pack()
     startChatCodeEnter.pack(pady = (25,0))
-    startChatEntry.pack(pady = (25,0))
+    startChatIPEntry.pack()
+    startChatNameEnter.pack(pady = (25,0))
+    startChatNameEntry.pack()
 
     # event handlers
 
@@ -78,13 +82,17 @@ def startStartChat():
         for serv in serverList:
             servInfo = serv.split(' -  -  - ')
             serverName = servInfo[0]
-            if serverName == startChatEntry.get():
+            if serverName == startChatIPEntry.get():
                 serverIP = servInfo[1]
                 break
         else:
-            serverIP = startChatEntry.get()
+            serverIP = startChatIPEntry.get()
         
-        startChatCodeEnter.config(text = serverIP)
+        if startChatNameEntry.get() == '':
+            startChatNameEnter.config(text = 'please enter display name:')
+        else:
+            clientDisplayName = startChatNameEntry.get()
+            chatTerminal()
 
     startChatWindow.bind('<Return>', startChatEnterKey)
 
@@ -250,7 +258,7 @@ def updateLabels():
 
 # chat terminal
 
-def chatTerminal(event):
+def chatTerminal():
     messageList = ['', '', '', '', '', '', '']
     global tScrollCounter
     tScrollCounter = 0
@@ -352,7 +360,7 @@ def chatTerminal(event):
         # if(msgStatus.decode() == "msgLost"):    
         #     clientSocket.sendto(sendMsg.encode(),serverInfo)
             
-        terminalPush(decryptMessage(encryptMessage(message, encryptKey), encryptKey))
+        terminalPush(message)
 
     def terminalEnterKey(event):
         sendMessage(terminalEntry.get())
@@ -377,17 +385,17 @@ def encryptMessage(message, key):
     keycount = 0
     output = ''
 
-    for i in message:
-        icode = ord(i) + key[keycount]
+    for i in message:           # loop through the characters in the message
+        icode = ord(i) + key[keycount]   # convert the character into ascii code and then add the correct part of the key
         
-        if icode > 126:
+        if icode > 126:                 # roll ascii code over if it's too high
             icode = (icode - 126) + 31
         
-        keycount = keycount + 1
-        if keycount == 5:
+        keycount = keycount + 1         # increment the part of the key
+        if keycount == 5:               # or roll it over if it has reached the end of the key
             keycount = 0
 
-        output = output + chr(icode)
+        output = output + chr(icode)    # convert the ascii code back into a char and append it to the output string
     
     return output
 
@@ -396,10 +404,10 @@ def decryptMessage(message, key):
     output = ''
 
     for i in message:
-        icode = ord(i) - key[keycount]
-        
+        icode = ord(i) - key[keycount]   # the decryption is identical to the encryption above, except it
+                                         # subtracts the part of the key instead of adding it
         if icode < 32:
-            icode = (icode + 126) - 31
+            icode = (icode + 126) - 31   # which means it also checks if the code is too low rather than too high
         
         keycount = keycount + 1
         if keycount == 5:
@@ -441,7 +449,6 @@ def enterKey(event):
 window.bind('<Up>', upKey)
 window.bind('<Down>', downKey)
 window.bind('<Return>', enterKey)
-window.bind('<BackSpace>', chatTerminal)
 
 frame.pack(fill = tk.X)
 updateLabels()
