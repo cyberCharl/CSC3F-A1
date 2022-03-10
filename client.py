@@ -279,7 +279,6 @@ def chatTerminal(clientDisplayName, serverIP):
 
     messageList = ['', '', '', '', '', '', '']
     clientMessageSync = ['', '', '', '', '', '', '']
-    global prevMessage
     global tScrollCounter
     tScrollCounter = 0
 
@@ -383,6 +382,7 @@ def chatTerminal(clientDisplayName, serverIP):
         eMessage = encryptMessage(message, encryptKey)
         thread1 = sendThread(1, "Thread-1", msgPacket(clientDisplayName, eMessage), serverInfo)
         thread1.start()
+        global prevMessage
         prevMessage = msgPacket(clientDisplayName, message)
 
         terminalPush(clientDisplayName, message)
