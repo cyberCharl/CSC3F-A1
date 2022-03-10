@@ -10,6 +10,8 @@ encryptKey = [randint(10,94), randint(10,94), randint(10,94), randint(10,94), ra
 tScrollCounter = 0
 sScrollCounter = 0
 
+clientIPAddress = gethostbyname(gethostname())
+
 # reading from text file for server list
 
 serverFile = open('servers.txt','r')
@@ -62,11 +64,10 @@ def startStartChat():
     startChatTitle = tk.Label(master = startChatFrame, text = 'start chat', fg = 'green', bg = 'black', width = 30, anchor = 'n', font = ('OCR A EXTENDED', 20))
     startChatCodeEnter = tk.Label(master = startChatFrame, text = 'enter ip address or server id:', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
     startChatIPEntry = tk.Entry(master = startChatFrame, fg = 'green', bg = 'black', width = 40, font = ('OCR A EXTENDED', 14))
-    startChatNameEnter = tk.Label(master = startChatFrame, text = 'enter display name:', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
+    startChatNameEnter = tk.Label(master = startChatFrame, text = 'Enter Display Name:', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
     startChatNameEntry = tk.Entry(master = startChatFrame, fg = 'green', bg = 'black', width = 40, font = ('OCR A EXTENDED', 14))
     startChatTitle = tk.Label(master = startChatFrame, text = 'Start Chat', fg = 'green', bg = 'black', width = 30, anchor = 'n', font = ('OCR A EXTENDED', 20))
     startChatCodeEnter = tk.Label(master = startChatFrame, text = 'Enter IP Address or Server ID:', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
-    startChatEntry = tk.Entry(master = startChatFrame, fg = 'green', bg = 'black', width = 40, font = ('OCR A EXTENDED', 14))
 
     # packing stage for gui
 
@@ -92,7 +93,7 @@ def startStartChat():
             serverIP = startChatIPEntry.get()
         
         if startChatNameEntry.get() == '':
-            startChatNameEnter.config(text = 'please enter display name:')
+            startChatNameEnter.config(text = 'Please Enter Display Name:')
         else:
             clientDisplayName = startChatNameEntry.get()
             chatTerminal()
@@ -217,7 +218,7 @@ def startHelp():
     help5 = tk.Label(master = helpFrame, text = 'you won\'t have to remember their ip. The chat', fg = 'green', bg = 'black', width = 50, anchor = 'w', font = ('OCR A EXTENDED', 12))
     help6 = tk.Label(master = helpFrame, text = 'has several commands that you can use. Below is', fg = 'green', bg = 'black', width = 50, anchor = 'w', font = ('OCR A EXTENDED', 12))
     help7 = tk.Label(master = helpFrame, text = 'the full list of chat commands.', fg = 'green', bg = 'black', width = 50, anchor = 'w', font = ('OCR A EXTENDED', 12))
-    help8 = tk.Label(master = helpFrame, text = 'commands:', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
+    help8 = tk.Label(master = helpFrame, text = 'Commands:', fg = 'green', bg = 'black', width = 40, anchor = 'w', font = ('OCR A EXTENDED', 14))
     help9 = tk.Label(master = helpFrame, text = '\quit: logs you out of the chat server', fg = 'green', bg = 'black', width = 50, anchor = 'w', font = ('OCR A EXTENDED', 12))
 
     # packing stage for gui
