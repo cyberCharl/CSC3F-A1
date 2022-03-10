@@ -3,7 +3,7 @@ import zlib
 import threading as thr
 import time
 
-homeIP = "192.168.1.118" # insert own network IP
+homeIP = "192.168.0.134" # insert own network IP
 uctIP = "196.42.86.45"
 uctIP1 = "196.42.81.129"
 localPort = 24000
@@ -22,6 +22,7 @@ def main():
     thread1 = listenThread(1)
     thread1.start()
 
+    serverDown()
 
 class client:
     def __init__(self, clientID, ipAddress, portAddress, encryptionKey):
@@ -64,14 +65,20 @@ def listen():
             print(msgRcv[1] + " connected") # broadcast to everyone else        
 
         if msgRcv[0] == "quit":
-            messageContent = msgRcv[1] + " disconnected --- removing messages sent"
-            print(messageContent) # send to other clients on server - 
-            break # remove client that quit from clientArray
+            leave(sendClient)
     
         if msgRcv[0] == "msg":
-            # messageContent = decryptMessage(msgRcv[2], key)
             broadcast(msgRcv[2], sendClient)
 
+def serverDown():
+    broadcastAll(commandHeader("serverDown", "server"))
+
+def leave(sendClient):
+    messageContent = msgRcv[1] + " disconnected --- removing messages sent"
+    packet = commandHeader("leave", msgRcv[1]) + "<cnt>" + messageContent + "</cnt>"
+    hashKey = hash(packet)
+    sendMsg = packet + hashKey        
+    broadcast(sendMsg, sendClient)
 
 def msgACK(status, clientDisplayName):
     sendMsg = commandHeader("ack", clientDisplayName)
@@ -179,6 +186,12 @@ def hash(message):
     return "<hK>" + str(zlib.adler32(message.encode())) + "</hK>"
 
 # broadcast message sent to all other "connected" clients - use clientArray
+def broadcastAll(packet): 
+    for i in clientArray:
+        package = str(encryptMessage(packet, i.encryptionKey))
+        clientAddress = (i.ipAddress, i.portAddress)
+        serverSocket.sendto(package.encode(), clientAddress)
+
 def broadcast(packet, sendingClient):
 
     for i in clientArray:
