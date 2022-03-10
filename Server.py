@@ -13,6 +13,15 @@ clientArray = []
 serverSocket = socket(AF_INET,SOCK_DGRAM)
 serverSocket.bind((homeIP, localPort))
 
+class client:
+    def __init__(self, clientID, ipAddress, portAddress, encryptionKey):
+        self.clientID = clientID
+        self.ipAddress= ipAddress
+        self.portAddress = portAddress
+        self.encryptionKey = encryptionKey
+    
+    def getClient(ipAddress, portAddress):
+        return self
 
 class listenThread(thr.Thread):
     def __init__(self, threadID):
@@ -22,16 +31,43 @@ class listenThread(thr.Thread):
     def run(self):
         listen()
 
-class client():
-    def __init__(identifier, ipAddress, portAddress, encryptionKey):
-        clientID = identifier
-        clientAddress = [ipAddress, portAddress]
-        clientKey = encryptionKey
+# listen method for thread
+def listen():
+    while True:
+        packetRecv, currentClientAdd = serverSocket.recvfrom(2048)
+        msgRcv = msgProtocol(packetRecv, currentClientAdd)
 
+        if msgRcv[0] == "touch":
+            encKey = [0,0,0,0,0]
+            key = msgRcv[2]
+            i = 0
+            while i<= 9:
+                encKey[i//2] = int(key[i:i+2])
+                i+= 2
+            print(encKey) 
+            newCli = client(clientID= msgRcv[1], 
+            ipAddress= currentClientAdd[0], 
+            portAddress= currentClientAdd[1], 
+            encryptionKey= encKey)
+            clientArray.append(newCli)
+            
+
+            # msgPacket(currentClientAdd, messageContent)
+            print(msgRcv[1] + " connected") # broadcast to everyone else
+    
+        if msgRcv[0] == "quit":
+            messageContent = msgRcv[1] + " disconnected --- removing messages sent"
+            print(messageContent) # send to other clients on server - 
+            break # remove client that quit from clientArray
+    
+        if msgRcv[0] == "msg":
+            # messageContent = decryptMessage(msgRcv[2], key) 
+            print(msgRcv[1] + '>> ' + msgRcv[2])
 
 def encryptMessage(message, key):
     keycount = 0
     output = ''
+
 
     for i in message:
         icode = ord(i) + key[keycount]
@@ -45,15 +81,14 @@ def encryptMessage(message, key):
 
         output = output + chr(icode)
 
-    return "<msg>" + output + "</msg>"
+    return "<cnt>" + output + "</cnt>"
 # to take package and remove message and decrypt it
 
 def decryptMessage(message, key):
-    msg = message[message.find("<msg>")+5:message.find("</msg>")]
     keycount = 0
     output = ''
 
-    for i in msg:
+    for i in message:
         icode = ord(i) - key[keycount]
         
         if icode < 32:
@@ -67,38 +102,20 @@ def decryptMessage(message, key):
     
     return output
 
+# command header (not normal message)
+def commandHeader(command, name):
+    msgType = "<T>"+ command + "</T>"
+    clientName = '<ID>' + name + '</ID>'
+    return msgType + clientName
+
 def msgPacket(name, num, messageContent): # client side order and reorder
     msgType = "<T>msg</T>"
     clientName = '<ID>' + name + '</ID>'
     clientNum = "<n>" + str(clientNum) + "</n>"
-    msgCrypt = encryptMessage(messageContent, clientArrray[num].encryptionKey)
+    msgCrypt = encryptMessage(messageContent, clientArray[num].encryptionKey)
     packet = msgType + clientName + clientNum + msgCrypt
     msgHash = hash(packet)
     return packet + msgHash
-
-# listen method for thread
-def listen():
-    while True:
-        packetRecv, currentClientAdd = serverSocket.recvfrom(2048)
-
-        msgRcv = msgProtocol(packetRecv, currentClientAdd)
-    
-        if msgRcv[0] == "touch":
-            clientArray.append(client(msgRcv[1], currentClientAdd, msgRcv[2]))
-            clientPos = len(clientArray) - 1
-            msgPacket(clientArray[clientPos].identifier, clientPos, messageContent)
-
-            # msgPacket(currentClientAdd, messageContent)
-            print(msgRcv[1] + " connected") # broadcast to everyone else
-    
-        if msgRcv[0] == "quit":
-            messageContent = msgRcv[1] + " disconnected --- removing messages sent"
-            print(messageContent) # send to other clients on server - 
-            break # remove client that quit from clientArray
-    
-        if msgRcv[0] == "msg":
-            messageContent = msgRcv[2]
-            print(msgRcv[1] + '>> ' + messageContent)
 
 def checkHash(message, recievedHash):
     return (zlib.adler32(message.encode()) == int(recievedHash))
@@ -115,8 +132,6 @@ def msgProtocol(packet, clientAdd):
     
     # get [hashKey] from packet
     hashKey = packet[packet.find("<hK>")+4:packet.find('</hK>')]
-    
-    clientNum = packet[packet.find("<n>")+3:packet.find("</n>")]
 
     # message confirmation via hash
     if checkHash(packet[:packet.find("<hK>")], hashKey):
@@ -131,7 +146,14 @@ def msgProtocol(packet, clientAdd):
         return [msgType, clientName, encKey]
 
     # get sent message and decrypt (would need clientID)
-    msgContent = decryptMessage(packet, clientArray[int(clientNum)].encryptionKey)
+
+    for i in clientArray:
+        key = []
+        if i.ipAddress == clientAdd[0] and i.portAddress == clientAdd[1]:
+            key = i.encryptionKey
+    
+    msg = packet[packet.find("<cnt>") + 10 :packet.find("</cnt>")]
+    msgContent = decryptMessage(msg, key)
 
     return [msgType, clientName, msgContent]
 
