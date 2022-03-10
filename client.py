@@ -268,8 +268,12 @@ def chatTerminal(clientDisplayName, serverIP):
                     sendMessage(prevMessage, serverInfo)
                 else:
                     continue
-            
-            if msgRcv[0] == "down":
+
+            if msgRcv[0] == "leave":
+                messageContent = msgRcv[2]
+                terminalPush(msgRcv[1], messageContent)
+
+            if msgRcv[0] == "serverDown":
                 print("server Down --- Shutting off")
                 clientSocket.close()
         
@@ -279,6 +283,7 @@ def chatTerminal(clientDisplayName, serverIP):
 
     messageList = ['', '', '', '', '', '', '']
     clientMessageSync = ['', '', '', '', '', '', '']
+    global prevMessage
     global tScrollCounter
     tScrollCounter = 0
 
@@ -382,7 +387,6 @@ def chatTerminal(clientDisplayName, serverIP):
         eMessage = encryptMessage(message, encryptKey)
         thread1 = sendThread(1, "Thread-1", msgPacket(clientDisplayName, eMessage), serverInfo)
         thread1.start()
-        global prevMessage
         prevMessage = msgPacket(clientDisplayName, message)
 
         terminalPush(clientDisplayName, message)
@@ -408,10 +412,6 @@ def chatTerminal(clientDisplayName, serverIP):
     terminalWindow.bind('<Up>', terminalUpKey)
     terminalWindow.bind('<Down>', terminalDownKey)
     terminalWindow.bind('<Return>', terminalEnterKey)
-
-    
-    
-    
 
     # start gui
 
@@ -618,7 +618,3 @@ window.bind('<Return>', enterKey)
 frame.pack(fill = tk.X)
 updateLabels()
 window.mainloop()    # start the GUI
-
-
-# modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
-# clientSocket.close()
