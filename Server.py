@@ -19,9 +19,6 @@ class client:
         self.ipAddress= ipAddress
         self.portAddress = portAddress
         self.encryptionKey = encryptionKey
-    
-    def getClient(ipAddress, portAddress):
-        return self
 
 class listenThread(thr.Thread):
     def __init__(self, threadID):
