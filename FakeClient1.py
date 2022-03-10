@@ -14,11 +14,11 @@ serverInfo = (homeIP, 24000) # insert own network IP
 clientSocket = socket(AF_INET, SOCK_DGRAM)
 count = 0
 encryptKey = [12,35,63,75,56]
-clientID = 'DieKwaaiRatel'
-#clientID = input('Enter identifier:')
+#clientID = 'DieKwaaiRatel'
+clientID = input('Enter identifier:')
 
 def main():
-# touch server 
+    # touch server 
     touch(clientID, encryptKey)
 
     message = ''
@@ -34,8 +34,7 @@ def main():
         message = encryptMessage(message, encryptKey)
         thread1 = sendThread(1, "Thread-1", msgPacket(clientID, message), serverInfo)
         thread1.start()
-
-# new thread to listen for messages from server only if server touched.      
+    # new thread to listen for messages from server only if server touched.      
     clientSocket.close()
 
     

@@ -37,6 +37,10 @@ def listen():
         packetRecv, currentClientAdd = serverSocket.recvfrom(2048)
         msgRcv = msgProtocol(packetRecv, currentClientAdd)
 
+        for i in clientArray:
+            if i.ipAddress == currentClientAdd[0] and i.portAddress == currentClientAdd[1]:
+                sendClient = i 
+
         if msgRcv[0] == "touch":
             encKey = [0,0,0,0,0]
             key = msgRcv[2]
@@ -44,15 +48,12 @@ def listen():
             while i<= 9:
                 encKey[i//2] = int(key[i:i+2])
                 i+= 2
-            print(encKey) 
             newCli = client(clientID= msgRcv[1], 
             ipAddress= currentClientAdd[0], 
             portAddress= currentClientAdd[1], 
             encryptionKey= encKey)
             clientArray.append(newCli)
             
-
-            # msgPacket(currentClientAdd, messageContent)
             print(msgRcv[1] + " connected") # broadcast to everyone else
     
         if msgRcv[0] == "quit":
@@ -61,8 +62,10 @@ def listen():
             break # remove client that quit from clientArray
     
         if msgRcv[0] == "msg":
-            # messageContent = decryptMessage(msgRcv[2], key) 
-            print(msgRcv[1] + '>> ' + msgRcv[2])
+            # messageContent = decryptMessage(msgRcv[2], key)
+            broadcast(msgRcv[2], sendClient)
+
+
 
 def encryptMessage(message, key):
     keycount = 0
@@ -108,12 +111,11 @@ def commandHeader(command, name):
     clientName = '<ID>' + name + '</ID>'
     return msgType + clientName
 
-def msgPacket(name, num, messageContent): # client side order and reorder
+def msgPacket(name, messageContent): # client side order and reorder
     msgType = "<T>msg</T>"
     clientName = '<ID>' + name + '</ID>'
-    clientNum = "<n>" + str(clientNum) + "</n>"
-    msgCrypt = encryptMessage(messageContent, clientArray[num].encryptionKey)
-    packet = msgType + clientName + clientNum + msgCrypt
+    # msgCrypt = encryptMessage(messageContent, clientArray[num].encryptionKey)
+    packet = msgType + clientName + messageContent
     msgHash = hash(packet)
     return packet + msgHash
 
@@ -157,24 +159,30 @@ def msgProtocol(packet, clientAdd):
 
     return [msgType, clientName, msgContent]
 
+def hash(message):
+    return "<hK>" + str(zlib.adler32(message.encode())) + "</hK>"
 
 # broadcast message sent to all other "connected" clients - use clientArray
 def broadcast(packet, sendingClient):
+
     for i in clientArray:
         if i != sendingClient:
-            clientSocket.sendto(packet.encode(), i.clientAddress)
+            msgCrypt = str(encryptMessage(packet, i.encryptionKey))
+            package = msgPacket(sendingClient.clientID, msgCrypt)
+            clientAddress = (i.ipAddress, i.portAddress)
+            serverSocket.sendto(package.encode(), clientAddress)
     
-    # timeout functionality
-        tic = time.perf_counter()
+         # timeout functionality
+            tic = time.perf_counter()
     
-        while(time.perf_counter() - tic <= 0.5):
-            msgACK, serverAddress = clientSocket.recvfrom(2048)
+            while(time.perf_counter() - tic <= 0.5):
+                msgACK, serverAddress = serverSocket.recvfrom(2048)
         
-            if(msgACK.decode() == "msgLost"):
-                tic = time.perf_counter()
-                clientSocket.sendto(packet.encode(), serverDetails)
-            else:
-                break        
+                if(msgACK.decode() == "msgLost"):
+                    tic = time.perf_counter()
+                    serverSocket.sendto(package.encode(), clientAddress)
+                else:
+                    continue        
 
     # do stuff on seperate threads 
 
