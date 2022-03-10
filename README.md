@@ -26,3 +26,8 @@ Client-Server chat app. Intention of this assignment is to create a privacy focu
     - hashKey: ```<hK>key</hK>```
 
 ## Running of the program
+    -To run the program, simply enter the following 
+    command into the Bourne Again Shell:
+        python3 "path_to_script"/client.py
+
+    You will now see the GUI
