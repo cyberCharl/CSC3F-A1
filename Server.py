@@ -3,7 +3,7 @@ import zlib
 import threading as thr
 import time
 
-homeIP = "192.168.0.180" # insert own network IP
+homeIP = "192.168.1.118" # insert own network IP
 uctIP = "196.42.86.45"
 uctIP1 = "196.42.81.129"
 localPort = 24000

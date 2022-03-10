@@ -17,6 +17,7 @@ encryptKey = [12,35,63,75,56]
 #clientID = 'DieKwaaiRatel'
 clientID = input('Enter identifier:')
 
+# (DONE)
 def main():
     # touch server 
     touch(clientID, encryptKey)
@@ -38,7 +39,7 @@ def main():
     clientSocket.close()
 
     
-### Client-side Sending functionality
+### Client-side Sending functionality (DONE)
 class sendThread(thr.Thread):
     def __init__(self, threadID, name, package, servInf):
         thr.Thread.__init__(self)
@@ -50,7 +51,7 @@ class sendThread(thr.Thread):
     def run(self):
         sendMessage(self.package, self.servInf)
         
-# send and check message
+# send and check message (DONE)
 def sendMessage(packet, serverDetails):
     clientSocket.sendto(packet.encode(), serverDetails)
     tic = time.perf_counter()
@@ -64,13 +65,13 @@ def sendMessage(packet, serverDetails):
         else:
              break        
 
-# command header (not normal message)
+# command header (not normal message) (DONE)
 def commandHeader(command, name):
     msgType = "<T>"+ command + "</T>"
     clientName = '<ID>' + name + '</ID>'
     return msgType + clientName
 
-# build the message packet with header and message
+# build the message packet with header and message (DONE)
 def msgPacket(name, messageContent): # client side order and reorder
     msgType = "<T>msg</T>"
     clientName = '<ID>' + name + '</ID>'
@@ -78,7 +79,7 @@ def msgPacket(name, messageContent): # client side order and reorder
     msgHash = hash(packet)
     return packet + msgHash
 
-#quit function
+#quit function (DONE)
 def quit():
     sendMsg = commandHeader("quit", clientID)
     hashKey = hash(sendMsg)
@@ -87,6 +88,7 @@ def quit():
     #  clientSocket.sendto(sendMsg.encode(),serverInfo)
     clientSocket.close()
 
+# (DONE)
 def touch(name, encryptKey):
     keyString = ""
     for i in encryptKey:
@@ -96,9 +98,9 @@ def touch(name, encryptKey):
     sendMsg = commandHeader("touch", name) + encKey
     hashKey = hash(sendMsg)
     sendMsg += hashKey
-    # clientSocket.sendto(sendMsg.encode(), serverDetails)
     sendMessage(sendMsg, serverInfo)
 
+# (DONE)
 def encryptMessage(message, key):
     keycount = 0
     output = ''
@@ -119,7 +121,7 @@ def encryptMessage(message, key):
     return "<cnt>" + output + "</cnt>"
 
 
-# hash function
+# hash function (DONE)
 def hash(message):
     return "<hK>" + str(zlib.adler32(message.encode())) + "</hK>"
 
@@ -140,8 +142,8 @@ class recieveThread(thr.Thread):
 
 def recieveMessage():
      while True:
-        recievedMessage, serverAddress = serverSocket.recvfrom(2048)
-        # packetRecv, currentClientAdd = serverSocket.recvfrom(2048)
+        recievedMessage, serverAddress = clientSocket.recvfrom(2048)
+        # packetRecv, currentClientAdd = clientSocket.recvfrom(2048)
 
         msgRcv = msgProtocol(packetRecv, currentClientAdd)
     
@@ -160,7 +162,7 @@ def recieveMessage():
             messageContent = msgRcv[2]
             print(msgRcv[1] + '>> ' + messageContent)
 
-# parsing protocol header add counter
+# parsing protocol header add counter (DONE)
 def msgProtocol(packet, serverAddress):
     packet = packet.decode()
 
@@ -176,9 +178,9 @@ def msgProtocol(packet, serverAddress):
     # message confirmation via hash
     if checkHash(packet[:packet.find("<hK>")], hashKey):
         # send message AK
-        serverSocket.sendto("msgRcvd".encode(), serverAddress)
+        clientSocket.sendto("msgRcvd".encode(), serverAddress)
     else: 
-        serverSocket.sendto("msgLost".encode(), serverAddress) 
+        clientSocket.sendto("msgLost".encode(), serverAddress) 
         # wait for response - thread?
     
     if (msgType == "touch"):
@@ -189,6 +191,9 @@ def msgProtocol(packet, serverAddress):
     msgContent = decryptMessage(packet)
 
     return [msgType, clientName, msgContent]
+
+def checkHash(message, recievedHash): # (DONE)
+    return (zlib.adler32(message.encode()) == int(recievedHash))
 
 if __name__ == "__main__":
     main()

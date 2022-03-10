@@ -4,6 +4,8 @@ import tkinter as tk
 from unicodedata import name
 import zlib
 from random import *
+import time
+import threading as thr
 
 
 encryptKey = [randint(10,94), randint(10,94), randint(10,94), randint(10,94), randint(10,94)]
@@ -17,8 +19,8 @@ clientIPAddress = gethostbyname(gethostname())
 serverFile = open('servers.txt','r')
 serverList = ['', '', '', '']
 for line in serverFile:
-    serverInfo = line.split(';')
-    serverText = serverInfo[0] + ' -  -  - ' + serverInfo[1]
+    serverInformation = line.split(';')
+    serverText = serverInformation[0] + ' -  -  - ' + serverInformation[1]
     serverList.reverse()
     serverList.insert(4, serverText)
     serverList.reverse()
@@ -26,9 +28,7 @@ serverFile.close()
 
 # Network stuff
 
-serverInfo = ("192.168.0.180", 12000) # insert own network IP
 clientSocket = socket(AF_INET, SOCK_DGRAM)
-clientName = 'Tokkolosh' 
 # clientName = input('Enter identifier:')
 
 # create window
@@ -96,7 +96,7 @@ def startStartChat():
             startChatNameEnter.config(text = 'Please Enter Display Name:')
         else:
             clientDisplayName = startChatNameEntry.get()
-            chatTerminal()
+            chatTerminal(clientDisplayName, serverIP)
 
     startChatWindow.bind('<Return>', startChatEnterKey)
 
@@ -239,33 +239,18 @@ def startHelp():
 
     helpWindow.mainloop()
 
-def selectLabel(label):
-    label.config(fg = 'black', bg = 'green')
-
-def unselectLabel(label):
-    label.config(fg = 'green', bg = 'black')
-
-def updateLabels():
-    global selected
-    if selected == 0:
-        selectLabel(start)
-        unselectLabel(servers)
-        unselectLabel(help)
-    elif selected == 1:
-        unselectLabel(start)
-        selectLabel(servers)
-        unselectLabel(help)
-    else:
-        unselectLabel(start)
-        unselectLabel(servers)
-        selectLabel(help)
-
 # chat terminal
 
-def chatTerminal():
+def chatTerminal(clientDisplayName, serverIP):
     messageList = ['', '', '', '', '', '', '']
+    clientMessageSync = ['', '', '', '', '', '', '']
     global tScrollCounter
     tScrollCounter = 0
+
+    # touch server
+    global encryptKey
+    serverInfo = (serverIP, 24000)
+    touch(clientDisplayName, encryptKey, serverInfo)
 
     # defining stage for gui
 
@@ -273,14 +258,14 @@ def chatTerminal():
     terminalWindow.configure(bg = 'black')
     terminalFrame = tk.Frame(master = terminalWindow, bg = 'black')
     terminalTitle = tk.Label(master = terminalFrame, text = 'Chat', fg = 'green', bg = 'black', width = 40, anchor = 'n', font = ('OCR A EXTENDED', 20))
-    terminalLine1 = tk.Label(master = terminalFrame, text = '', fg = 'green', bg = 'black', width = 50, anchor = 'w', font = ('OCR A EXTENDED', 14))
-    terminalLine2 = tk.Label(master = terminalFrame, text = '', fg = 'green', bg = 'black', width = 50, anchor = 'w', font = ('OCR A EXTENDED', 14))
-    terminalLine3 = tk.Label(master = terminalFrame, text = '', fg = 'green', bg = 'black', width = 50, anchor = 'w', font = ('OCR A EXTENDED', 14))
-    terminalLine4 = tk.Label(master = terminalFrame, text = '', fg = 'green', bg = 'black', width = 50, anchor = 'w', font = ('OCR A EXTENDED', 14))
-    terminalLine5 = tk.Label(master = terminalFrame, text = '', fg = 'green', bg = 'black', width = 50, anchor = 'w', font = ('OCR A EXTENDED', 14))
-    terminalLine6 = tk.Label(master = terminalFrame, text = '', fg = 'green', bg = 'black', width = 50, anchor = 'w', font = ('OCR A EXTENDED', 14))
-    terminalLine7 = tk.Label(master = terminalFrame, text = '', fg = 'green', bg = 'black', width = 50, anchor = 'w', font = ('OCR A EXTENDED', 14))
-    terminalLine8 = tk.Label(master = terminalFrame, text = '', fg = 'green', bg = 'black', width = 50, anchor = 'w', font = ('OCR A EXTENDED', 14))
+    terminalLine1 = tk.Label(master = terminalFrame, text = '', fg = 'green', bg = 'black', width = 60, anchor = 'w', font = ('OCR A EXTENDED', 14))
+    terminalLine2 = tk.Label(master = terminalFrame, text = '', fg = 'green', bg = 'black', width = 60, anchor = 'w', font = ('OCR A EXTENDED', 14))
+    terminalLine3 = tk.Label(master = terminalFrame, text = '', fg = 'green', bg = 'black', width = 60, anchor = 'w', font = ('OCR A EXTENDED', 14))
+    terminalLine4 = tk.Label(master = terminalFrame, text = '', fg = 'green', bg = 'black', width = 60, anchor = 'w', font = ('OCR A EXTENDED', 14))
+    terminalLine5 = tk.Label(master = terminalFrame, text = '', fg = 'green', bg = 'black', width = 60, anchor = 'w', font = ('OCR A EXTENDED', 14))
+    terminalLine6 = tk.Label(master = terminalFrame, text = '', fg = 'green', bg = 'black', width = 60, anchor = 'w', font = ('OCR A EXTENDED', 14))
+    terminalLine7 = tk.Label(master = terminalFrame, text = '', fg = 'green', bg = 'black', width = 60, anchor = 'w', font = ('OCR A EXTENDED', 14))
+    terminalLine8 = tk.Label(master = terminalFrame, text = '', fg = 'green', bg = 'black', width = 60, anchor = 'w', font = ('OCR A EXTENDED', 14))
     terminalEntryLabel = tk.Label(master = terminalFrame, text = '>', fg = 'green', bg = 'black', width = 1, anchor = 'w', font = ('OCR A EXTENDED', 14))
     terminalEntry = tk.Entry(master = terminalFrame, text = '', fg = 'green', bg = 'black', width = 60, relief = 'raised', font = ('OCR A EXTENDED', 14))
 
@@ -308,14 +293,14 @@ def chatTerminal():
             tScrollCounter = tScrollCounter + 1
         
         k = 8*tScrollCounter
-        terminalLine1.config(text = messageList[k + 7])
-        terminalLine2.config(text = messageList[k + 6])
-        terminalLine3.config(text = messageList[k + 5])
-        terminalLine4.config(text = messageList[k + 4])
-        terminalLine5.config(text = messageList[k + 3])
-        terminalLine6.config(text = messageList[k + 2])
-        terminalLine7.config(text = messageList[k + 1])
-        terminalLine8.config(text = messageList[k])
+        terminalLine1.config(text = clientMessageSync[k + 7] + messageList[k + 7])
+        terminalLine2.config(text = clientMessageSync[k + 6] + messageList[k + 6])
+        terminalLine3.config(text = clientMessageSync[k + 5] + messageList[k + 5])
+        terminalLine4.config(text = clientMessageSync[k + 4] + messageList[k + 4])
+        terminalLine5.config(text = clientMessageSync[k + 3] + messageList[k + 3])
+        terminalLine6.config(text = clientMessageSync[k + 2] + messageList[k + 2])
+        terminalLine7.config(text = clientMessageSync[k + 1] + messageList[k + 1])
+        terminalLine8.config(text = clientMessageSync[k] + messageList[k])
 
     def terminalScrollDown():
         global tScrollCounter
@@ -324,50 +309,52 @@ def chatTerminal():
             tScrollCounter = tScrollCounter - 1
         
         k = 8*tScrollCounter
-        terminalLine1.config(text = messageList[k + 7])
-        terminalLine2.config(text = messageList[k + 6])
-        terminalLine3.config(text = messageList[k + 5])
-        terminalLine4.config(text = messageList[k + 4])
-        terminalLine5.config(text = messageList[k + 3])
-        terminalLine6.config(text = messageList[k + 2])
-        terminalLine7.config(text = messageList[k + 1])
-        terminalLine8.config(text = messageList[k])
+        terminalLine1.config(text = clientMessageSync[k + 7] + messageList[k + 7])
+        terminalLine2.config(text = clientMessageSync[k + 6] + messageList[k + 6])
+        terminalLine3.config(text = clientMessageSync[k + 5] + messageList[k + 5])
+        terminalLine4.config(text = clientMessageSync[k + 4] + messageList[k + 4])
+        terminalLine5.config(text = clientMessageSync[k + 3] + messageList[k + 3])
+        terminalLine6.config(text = clientMessageSync[k + 2] + messageList[k + 2])
+        terminalLine7.config(text = clientMessageSync[k + 1] + messageList[k + 1])
+        terminalLine8.config(text = clientMessageSync[k] +messageList[k])
 
-    def terminalPush(message):
-        messageList.insert(0, message)
-        terminalLine1.config(text = messageList[7])
-        terminalLine2.config(text = messageList[6])
-        terminalLine3.config(text = messageList[5])
-        terminalLine4.config(text = messageList[4])
-        terminalLine5.config(text = messageList[3])
-        terminalLine6.config(text = messageList[2])
-        terminalLine7.config(text = messageList[1])
-        terminalLine8.config(text = messageList[0])
+    def terminalPush(client, message):
+        messageList.insert(0, ': ' + message)
+        clientMessageSync.insert(0, client)
+        terminalLine1.config(text = clientMessageSync[7] + messageList[7])
+        terminalLine2.config(text = clientMessageSync[6] + messageList[6])
+        terminalLine3.config(text = clientMessageSync[5] + messageList[5])
+        terminalLine4.config(text = clientMessageSync[4] + messageList[4])
+        terminalLine5.config(text = clientMessageSync[3] + messageList[3])
+        terminalLine6.config(text = clientMessageSync[2] + messageList[2])
+        terminalLine7.config(text = clientMessageSync[1] + messageList[1])
+        terminalLine8.config(text = clientMessageSync[0] + messageList[0])
         terminalEntry.delete(0,'end')
 
-    def sendMessage(message):
+    # get message contents from gui input
+
+    def getMessageContents(message):
+        if(message[0] == '/'):
+            if(message == '/quit'):
+                quit()
         
-    #while(message!='\quit'):
-        #message = input('msg > ')
+        eMessage = encryptMessage(message, encryptKey)
+        thread1 = sendThread(1, "Thread-1", msgPacket(clientDisplayName, eMessage), serverInfo)
+        thread1.start()
 
-        # quit function
-        # if(message == '\quit'):
-        #     sendMsg = '<' + clientName + '> ' + 'Disconnected'
-        #     clientSocket.sendto(sendMsg.encode(),serverInfo)
-        #     terminalEntry.delete(0,'end')
-        # msgHash = zlib.adler32(message.encode())
-        # sendMsg = '['+ str(msgHash) + ']' + '<' + clientName + '> ' + '{' + message + '}'
+        terminalPush(clientDisplayName, message)
 
-        # clientSocket.sendto(sendMsg.encode(),serverInfo)
-    
-        # msgStatus, serverAddress = clientSocket.recvfrom(2048)
-        # if(msgStatus.decode() == "msgLost"):    
-        #     clientSocket.sendto(sendMsg.encode(),serverInfo)
-            
-        terminalPush(message)
+    #quit function
+
+    def quit():
+        sendMsg = commandHeader("quit", clientDisplayName)
+        hashKey = hash(sendMsg)
+        sendMsg += hashKey
+        sendMessage(sendMsg, serverInfo)
+        clientSocket.close()
 
     def terminalEnterKey(event):
-        sendMessage(terminalEntry.get())
+        getMessageContents(terminalEntry.get())
     
     def terminalUpKey(event):
         terminalScrollUp()
@@ -419,9 +406,126 @@ def decryptMessage(message, key):
 
         output = output + chr(icode)
     
-    return output
+    return "<cnt>" + output + "</cnt>"
+
+# hash functions
+
+def hash(message):
+    return "<hK>" + str(zlib.adler32(message.encode())) + "</hK>"
+
+def checkHash(message, recievedHash):
+    return (zlib.adler32(message.encode()) == int(recievedHash))
+
+# touch method
+
+def touch(name, encryptKey, serverInfo):
+    keyString = ""
+    for i in encryptKey:
+        keyString += str(i)
+
+    encKey = "<ek>" + keyString + "</ek>"
+    sendMsg = commandHeader("touch", name) + encKey
+    hashKey = hash(sendMsg)
+    sendMsg += hashKey
+    sendMessage(sendMsg, serverInfo)
+
+# command header (not normal message)
+
+def commandHeader(command, name):
+    msgType = "<T>"+ command + "</T>"
+    clientName = '<ID>' + name + '</ID>'
+    return msgType + clientName
+
+# send and check message
+
+def sendMessage(packet, serverDetails):
+    clientSocket.sendto(packet.encode(), serverDetails)
+    tic = time.perf_counter()
+    
+    while(time.perf_counter() - tic <= 0.5):
+        msgACK, serverAddress = clientSocket.recvfrom(2048)
+        
+        if(msgACK.decode() == "msgLost"):
+            tic = time.perf_counter()
+            clientSocket.sendto(packet.encode(), serverDetails)
+        else:
+             break
+
+# format for messages
+
+def msgPacket(name, messageContent):
+    msgType = "<T>msg</T>"
+    clientName = '<ID>' + name + '</ID>'
+    packet = msgType + clientName + "<cnt>" + messageContent + "</cnt>"
+    msgHash = hash(packet)
+    return packet + msgHash
+
+# parsing protocol header add counter
+
+def msgProtocol(packet, serverAddress):
+    packet = packet.decode()
+
+    # get <T>type</T>
+    msgType = packet[packet.find("<T>")+3:packet.find("</T>")]
+    
+    # get <ID>clientName</ID> from packet recieved
+    clientName = packet[packet.find('<ID>')+4:packet.find('</ID>')]
+    
+    # get [hashKey] from packet
+    hashKey = packet[packet.find("<hK>")+4:packet.find('</hK>')]
+    
+    # message confirmation via hash
+    if checkHash(packet[:packet.find("<hK>")], hashKey):
+        # send message AK
+        clientSocket.sendto("msgRcvd".encode(), serverAddress)
+    else: 
+        clientSocket.sendto("msgLost".encode(), serverAddress) 
+        # wait for response - thread?
+    
+    if (msgType == "touch"):
+        encKey = packet[packet.find("<ek>") + 4: packet.find("</ek>")]
+        return [msgType, clientName, encKey]
+
+    # get sent message and decrypt (would need clientID)
+    msgContent = decryptMessage(packet)
+
+    return [msgType, clientName, msgContent]
+
+# thread for sending messages
+
+class sendThread(thr.Thread):
+    def __init__(self, threadID, name, package, servInf):
+        thr.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = name
+        self.package = package
+        self.servInf = servInf
+
+    def run(self):
+        sendMessage(self.package, self.servInf)
 
 # main screen event handlers
+
+def selectLabel(label):
+    label.config(fg = 'black', bg = 'green')
+
+def unselectLabel(label):
+    label.config(fg = 'green', bg = 'black')
+
+def updateLabels():
+    global selected
+    if selected == 0:
+        selectLabel(start)
+        unselectLabel(servers)
+        unselectLabel(help)
+    elif selected == 1:
+        unselectLabel(start)
+        selectLabel(servers)
+        unselectLabel(help)
+    else:
+        unselectLabel(start)
+        unselectLabel(servers)
+        selectLabel(help)
 
 def upKey(event):
     global selected
