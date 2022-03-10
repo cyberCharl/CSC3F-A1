@@ -13,6 +13,16 @@ clientArray = []
 serverSocket = socket(AF_INET,SOCK_DGRAM)
 serverSocket.bind((homeIP, localPort))
 
+prevMessage = ""
+
+def main():
+# server active confirmation
+    print ('Server is Up on: ' + homeIP)
+
+    thread1 = listenThread(1)
+    thread1.start()
+
+
 class client:
     def __init__(self, clientID, ipAddress, portAddress, encryptionKey):
         self.clientID = clientID
@@ -51,8 +61,8 @@ def listen():
             encryptionKey= encKey)
             clientArray.append(newCli)
             
-            print(msgRcv[1] + " connected") # broadcast to everyone else
-    
+            print(msgRcv[1] + " connected") # broadcast to everyone else        
+
         if msgRcv[0] == "quit":
             messageContent = msgRcv[1] + " disconnected --- removing messages sent"
             print(messageContent) # send to other clients on server - 
@@ -63,6 +73,11 @@ def listen():
             broadcast(msgRcv[2], sendClient)
 
 
+def msgACK(status, clientDisplayName):
+    sendMsg = commandHeader("ack", clientDisplayName)
+    sendMsg += "<st>" + status + "</st>"
+    haskey = hash(sendMsg)
+    return sendMsg + haskey
 
 def encryptMessage(message, key):
     keycount = 0
@@ -82,7 +97,6 @@ def encryptMessage(message, key):
         output = output + chr(icode)
 
     return "<cnt>" + output + "</cnt>"
-# to take package and remove message and decrypt it
 
 def decryptMessage(message, key):
     keycount = 0
@@ -121,30 +135,36 @@ def checkHash(message, recievedHash):
 # parsing protocol header add counter
 def msgProtocol(packet, clientAdd):
     packet = packet.decode()
-
+    
     # get <T>type</T>
     msgType = packet[packet.find("<T>")+3:packet.find("</T>")]
-    
+        
     # get <ID>clientName</ID> from packet recieved
     clientName = packet[packet.find('<ID>')+4:packet.find('</ID>')]
     
-    # get [hashKey] from packet
+    # get <hK>hashKey</hK> from packet
     hashKey = packet[packet.find("<hK>")+4:packet.find('</hK>')]
 
     # message confirmation via hash
     if checkHash(packet[:packet.find("<hK>")], hashKey):
-        # send message AK
-        serverSocket.sendto("msgRcvd".encode(), clientAdd)
+        # send message Ackowledgement
+        status = "msgRcvd"
+        serverSocket.sendto(msgACK(status, clientName).encode(), clientAdd)
     else: 
-        serverSocket.sendto("msgLost".encode(), clientAdd) 
+        status = "msgLost"
+        serverSocket.sendto(msgACK(status, clientName).encode(), clientAdd) 
         # wait for response - thread?
     
+    # if touch, get encryption key
     if (msgType == "touch"):
         encKey = packet[packet.find("<ek>") + 4: packet.find("</ek>")]
         return [msgType, clientName, encKey]
-
-    # get sent message and decrypt (would need clientID)
-
+    
+    # if ackowledge message, return type, clientDisplayName, status,
+    if msgType == "ack":
+            ackStatus = packet[packet.find("<st>")+4:packet.find("</st>")]
+            return [msgType, clientName, ackStatus]
+    
     for i in clientArray:
         key = []
         if i.ipAddress == clientAdd[0] and i.portAddress == clientAdd[1]:
@@ -167,27 +187,6 @@ def broadcast(packet, sendingClient):
             package = msgPacket(sendingClient.clientID, msgCrypt)
             clientAddress = (i.ipAddress, i.portAddress)
             serverSocket.sendto(package.encode(), clientAddress)
-    
-         # timeout functionality
-            tic = time.perf_counter()
-    
-            while(time.perf_counter() - tic <= 0.5):
-                msgACK, serverAddress = serverSocket.recvfrom(2048)
-        
-                if(msgACK.decode() == "msgLost"):
-                    tic = time.perf_counter()
-                    serverSocket.sendto(package.encode(), clientAddress)
-                else:
-                    continue        
-
-    # do stuff on seperate threads 
-
-def main():
-# server active confirmation
-    print ('Server is Up on: ' + homeIP)
-
-    thread1 = listenThread(1)
-    thread1.start()
 
 if __name__ == "__main__":
     main()
