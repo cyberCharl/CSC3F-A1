@@ -21,6 +21,8 @@ clientID = input('Enter identifier:')
 def main():
     # touch server 
     touch(clientID, encryptKey)
+    rThread = recieveThread(2, "Reciever")
+    rThread.start()
 
     message = ''
     while(True):
@@ -130,13 +132,11 @@ def hash(message):
 
 # Send and confirm thread to take messages passed to it, send to server and wait for response. 
 class recieveThread(thr.Thread):
-    def __init__(self, threadID,name,package,servInf):
+    def __init__(self, threadID,name):
         thr.Thread.__init__(self)
         self.threadID = threadID
         self.name = name
-        self.package = package
-        self.servInf = servInf
-    
+        
     def run(self):
         recieveMessage()
 
@@ -145,18 +145,10 @@ def recieveMessage():
         recievedMessage, serverAddress = clientSocket.recvfrom(2048)
         # packetRecv, currentClientAdd = clientSocket.recvfrom(2048)
 
-        msgRcv = msgProtocol(packetRecv, currentClientAdd)
+        msgRcv = msgProtocol(recievedMessage, serverAddress)
     
-        if msgRcv[0] == "touch":
-            clientArray.append(client(msgRcv[1], currentClientAdd, msgRcv[2]))
-            # msgPacket(currentClientAdd, messageContent)
-            print(msgRcv[1] + " connected") # broadcast to everyone else
-    
-        # change to server down
-        if msgRcv[0] == "quit":
-            messageContent = msgRcv[1] + " disconnected --- removing messages sent"
-            print(messageContent) # send to other clients on server - 
-            break # remove client that quit from clientArray
+        if msgRcv[0] == "down":
+            print("fok soentoe")
     
         if msgRcv[0] == "msg":
             messageContent = msgRcv[2]
@@ -188,7 +180,7 @@ def msgProtocol(packet, serverAddress):
         return [msgType, clientName, encKey]
 
     # get sent message and decrypt (would need clientID)
-    msgContent = decryptMessage(packet)
+    msgContent = decryptMessage(packet, encryptKey)
 
     return [msgType, clientName, msgContent]
 

@@ -3,7 +3,7 @@ import zlib
 import threading as thr
 import time
 
-homeIP = "192.168.1.118" # insert own network IP
+homeIP = "192.168.0.180" # insert own network IP
 uctIP = "196.42.86.45"
 uctIP1 = "196.42.81.129"
 localPort = 24000
@@ -108,10 +108,9 @@ def commandHeader(command, name):
     clientName = '<ID>' + name + '</ID>'
     return msgType + clientName
 
-def msgPacket(name, messageContent): # client side order and reorder
+def msgPacket(name, messageContent): 
     msgType = "<T>msg</T>"
     clientName = '<ID>' + name + '</ID>'
-    # msgCrypt = encryptMessage(messageContent, clientArray[num].encryptionKey)
     packet = msgType + clientName + messageContent
     msgHash = hash(packet)
     return packet + msgHash
@@ -163,7 +162,7 @@ def hash(message):
 def broadcast(packet, sendingClient):
 
     for i in clientArray:
-        if i != sendingClient:
+        if i == sendingClient:
             msgCrypt = str(encryptMessage(packet, i.encryptionKey))
             package = msgPacket(sendingClient.clientID, msgCrypt)
             clientAddress = (i.ipAddress, i.portAddress)
